@@ -15,6 +15,7 @@ local CC = workspace.CurrentCamera
 local character = PLAYER.Character or PLAYER.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
+local args = {"Receiving"}
 
 -- Создаём маркер (невидимый)
 local Marker = Instance.new("Part")
@@ -458,6 +459,10 @@ local function moveToMarker(targetPosition)
         
         -- Нажимаем соответствующие клавиши движения
         pressDirectionKeys(angle)
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PlayerAction"):FireServer(unpack(args))
+        local animation = game:GetService("ReplicatedStorage").Assets.Animations.Receive.Default
+        local animationTrack = humanoid:LoadAnimation(animation)
+        animationTrack:Play()
     end
 end
 
