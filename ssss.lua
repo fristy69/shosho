@@ -34,8 +34,8 @@ ScreenGui.Name = "AutoDiveUI"
 ScreenGui.Parent = PLAYER:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 120, 0, 120)
-MainFrame.Position = UDim2.new(0.5, -60, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 200) -- Увеличиваем размер для слайдера
+MainFrame.Position = UDim2.new(0.5, -100, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 2
 MainFrame.BorderColor3 = Color3.fromRGB(100, 100, 100)
@@ -44,19 +44,118 @@ MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 100, 0, 50)
-ToggleButton.Position = UDim2.new(0.1, 0, 0.05, 0)
+ToggleButton.Size = UDim2.new(0, 180, 0, 40)
+ToggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
 ToggleButton.Text = "AutoDive: OFF"
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ToggleButton.Parent = MainFrame
 
 local PanicButton = Instance.new("TextButton")
-PanicButton.Size = UDim2.new(0, 100, 0, 40)
-PanicButton.Position = UDim2.new(0.1, 0, 0.55, 0)
+PanicButton.Size = UDim2.new(0, 180, 0, 40)
+PanicButton.Position = UDim2.new(0.05, 0, 0.3, 0)
 PanicButton.Text = "PANIC BUTTON"
 PanicButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 PanicButton.Parent = MainFrame
+
+-- Добавляем слайдер для Dive Delay (теперь он не зависит от перемещения MainFrame)
+local DelaySlider = Instance.new("Frame")
+DelaySlider.Name = "DelaySlider"
+DelaySlider.Size = UDim2.new(0, 180, 0, 50)
+DelaySlider.Position = UDim2.new(0.05, 0, 0.55, 0)
+DelaySlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+DelaySlider.BorderSizePixel = 0
+DelaySlider.Parent = MainFrame
+
+local DelayText = Instance.new("TextLabel")
+DelayText.Name = "DelayText"
+DelayText.Size = UDim2.new(1, 0, 0.4, 0)
+DelayText.Position = UDim2.new(0, 0, 0, 0)
+DelayText.Text = "Dive Delay: 100ms"
+DelayText.TextColor3 = Color3.fromRGB(255, 255, 255)
+DelayText.BackgroundTransparency = 1
+DelayText.Parent = DelaySlider
+
+local SliderTrack = Instance.new("Frame")
+SliderTrack.Name = "SliderTrack"
+SliderTrack.Size = UDim2.new(0.9, 0, 0.2, 0)
+SliderTrack.Position = UDim2.new(0.05, 0, 0.6, 0)
+SliderTrack.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+SliderTrack.BorderSizePixel = 0
+SliderTrack.Parent = DelaySlider
+
+local SliderThumb = Instance.new("Frame")
+SliderThumb.Name = "SliderThumb"
+SliderThumb.Size = UDim2.new(0, 10, 1.5, 0)
+SliderThumb.Position = UDim2.new(0.1, -5, 0.25, 0) -- Начальное положение (100ms)
+SliderThumb.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+SliderThumb.BorderSizePixel = 0
+SliderThumb.ZIndex = 2 -- Чтобы ползунок был поверх трека
+SliderThumb.Parent = SliderTrack
+
+-- ============= ВСТАВЛЯЕМ ИСПРАВЛЕННЫЙ КОД СЛАЙДЕРА ЗДЕСЬ =============
+-- Обработчик слайдера
+local sliding = false
+local sliderOffset = 0
+
+-- Функция для обновления положения ползунка
+local function updateSliderPosition()
+    local percentage = currentDiveDelay -- 0.0 до 1.0
+    SliderThumb.Position = UDim2.new(percentage, -5, 0.25, 0)
+end
+
+-- Функция для обновления текста задержки
+local function updateDelayText()
+    DelayText.Text = string.format("Dive Delay: %dms", math.floor(currentDiveDelay * 1000))
+end
+
+-- Обработка перемещения ползунка
+local function handleSliderInput()
+    if sliding then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local trackAbsolutePos = SliderTrack.AbsolutePosition.X
+        local trackAbsoluteSize = SliderTrack.AbsoluteSize.X
+        
+        -- Вычисляем относительное положение (0-1)
+        local relativePos = math.clamp((mouseX - trackAbsolutePos - sliderOffset) / trackAbsoluteSize, 0, 1)
+        
+        -- Обновляем задержку
+        currentDiveDelay = relativePos
+        updateDelayText()
+        updateSliderPosition()
+    end
+end
+
+-- Обработчики событий слайдера
+SliderThumb.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        sliding = true
+        -- Запоминаем смещение курсора относительно центра ползунка
+        local thumbAbsolutePos = SliderThumb.AbsolutePosition.X + SliderThumb.AbsoluteSize.X/2
+        sliderOffset = thumbAbsolutePos - SliderTrack.AbsolutePosition.X
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        sliding = false
+    end
+end)
+
+-- Добавляем обработку ввода для всего трека
+SliderTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        sliding = true
+        sliderOffset = 0 -- При клике на треке смещение не нужно
+        handleSliderInput() -- Немедленно обновляем позицию
+    end
+end)
+
+-- Инициализация слайдера
+currentDiveDelay = 0.1 -- Начальное значение (100ms)
+updateDelayText()
+updateSliderPosition()
+-- ============= КОНЕЦ ВСТАВКИ ИСПРАВЛЕННОГО КОДА =============
 
 -- Переменные для управления
 local autoDiveEnabled = false
@@ -74,6 +173,54 @@ local shouldMove = false
 local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
+
+-- Функция для обновления текста задержки
+local function updateDelayText()
+    DelayText.Text = string.format("Dive Delay: %dms", currentDiveDelay * 1000)
+end
+
+-- Обработчик слайдера
+local sliding = false
+local sliderOffset = 0
+
+-- Функция для обновления положения ползунка
+local function updateSliderPosition()
+    local percentage = currentDiveDelay -- 0.0 до 1.0
+    SliderThumb.Position = UDim2.new(percentage, -5, 0.25, 0)
+end
+
+SliderThumb.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        sliding = true
+        -- Запоминаем смещение курсора относительно центра ползунка
+        local sliderAbsolutePos = SliderThumb.AbsolutePosition.X + SliderThumb.AbsoluteSize.X/2
+        sliderOffset = UserInputService:GetMouseLocation().X - sliderAbsolutePos
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        sliding = false
+    end
+end)
+
+-- Обработка перемещения ползунка
+local function handleSliderInput()
+    if sliding then
+        local mouseX = UserInputService:GetMouseLocation().X - sliderOffset
+        local trackAbsolutePos = SliderTrack.AbsolutePosition.X
+        local trackAbsoluteSize = SliderTrack.AbsoluteSize.X
+        
+        -- Вычисляем относительное положение (0-1)
+        local relativePos = math.clamp((mouseX - trackAbsolutePos) / trackAbsoluteSize, 0, 1)
+        
+        -- Обновляем задержку
+        currentDiveDelay = relativePos
+        updateDelayText()
+        updateSliderPosition()
+    end
+end
+
 
 -- Таблица для хранения оригинальных состояний клавиш
 local originalKeyStates = {
@@ -241,8 +388,8 @@ local function performDiveWithMovement(angle)
         -- Нажимаем клавиши направления
         pressDirectionKeys(angle)
         
-        -- Ждем немного перед дайвом
-        task.wait(0.1)
+        -- Ждем перед дайвом (используем установленную задержку)
+        task.wait(currentDiveDelay)
         
         -- Выполняем дайв
         game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
@@ -363,10 +510,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Основной цикл
+-- В основном цикле убедитесь, что вызываете handleSliderInput()
 RunService.RenderStepped:Connect(function()
-    if not scriptActive or not autoDiveEnabled then 
-        -- Если скрипт неактивен или авто-дайв выключен, останавливаем движение и восстанавливаем ввод
+    -- Обрабатываем ввод слайдера
+    handleSliderInput()
+    
+     if not scriptActive or not autoDiveEnabled then 
         if shouldMove then
             stopMovement()
             restoreUserInput()
@@ -462,3 +611,7 @@ PLAYER.CharacterAdded:Connect(function(newCharacter)
     restoreUserInput()
     reachedBall = false
 end)
+
+-- Инициализация текста задержки и положения слайдера
+updateDelayText()
+updateSliderPosition()
