@@ -64,9 +64,9 @@ local lastDiveTime = 0
 local lastRecTime = 0
 local DIVE_COOLDOWN = 1
 local REC_COOLDOWN = 0.5
-local DIVE_RADIUS = 13
+local DIVE_RADIUS = 20
 local REC_RADIUS = 8
-local TARGET_BALL_SPEED = 42
+local TARGET_BALL_SPEED = 39
 local scriptActive = true
 local isReceiving = false
 local lastDirection = nil
@@ -74,98 +74,6 @@ local shouldMove = false
 local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
-
--- Вставьте здесь функции createInvisibleBlocks и checkMarkerCollision
-local function createInvisibleBlocks()
-    -- Основные блоки (лонг, лонг1, лонг2)
-    local part1 = Instance.new("Part")
-    part1.Name = "лонг"
-    part1.Position = Vector3.new(0, 1, -36.5)
-    part1.Size = Vector3.new(48, 1, 22)
-    part1.Anchored = true
-    part1.CanCollide = false
-    part1.Transparency = 1
-    part1.Parent = workspace
-
-    local part2 = Instance.new("Part")
-    part2.Name = "лонг1"
-    part2.Position = Vector3.new(18.5, 1.1, -20.5)
-    part2.Size = Vector3.new(11, 1, 10)
-    part2.Anchored = true
-    part2.CanCollide = false
-    part2.Transparency = 1
-    part2.Parent = workspace
-
-    local part3 = Instance.new("Part")
-    part3.Name = "лонг2"
-    part3.Position = Vector3.new(-18.5, 1.1, -20.5)
-    part3.Size = Vector3.new(11, 1, 10)
-    part3.Anchored = true
-    part3.CanCollide = false
-    part3.Transparency = 1
-    part3.Parent = workspace
-
-    -- Зеркальные блоки (2лонг, 2лонг1, 2лонг2)
-    local part4 = Instance.new("Part")
-    part4.Name = "2лонг"
-    part4.Position = Vector3.new(0, 1.1, 36.5)
-    part4.Size = Vector3.new(48, 1, 22)
-    part4.Anchored = true
-    part4.CanCollide = false
-    part4.Transparency = 1
-    part4.Parent = workspace
-
-    local part5 = Instance.new("Part")
-    part5.Name = "2лонг1"
-    part5.Position = Vector3.new(18.5, 1.1, 20.5)
-    part5.Size = Vector3.new(11, 1, 10)
-    part5.Anchored = true
-    part5.CanCollide = false
-    part5.Transparency = 1
-    part5.Parent = workspace
-
-    local part6 = Instance.new("Part")
-    part6.Name = "2лонг2"
-    part6.Position = Vector3.new(-18.5, 1.1, 20.5)
-    part6.Size = Vector3.new(11, 1, 10)
-    part6.Anchored = true
-    part6.CanCollide = false
-    part6.Transparency = 1
-    part6.Parent = workspace
-end
-
--- Функция проверки пересечения маркера с блоками
-local function checkMarkerCollision()
-    if not Marker or not workspace:FindFirstChild("лонг") then return false end
-    
-    -- Получаем все блоки
-    local blocks = {
-        workspace:FindFirstChild("лонг"),
-        workspace:FindFirstChild("лонг1"),
-        workspace:FindFirstChild("лонг2"),
-        workspace:FindFirstChild("2лонг"),
-        workspace:FindFirstChild("2лонг1"),
-        workspace:FindFirstChild("2лонг2")
-    }
-    
-    -- Проверяем пересечение с каждым блоком
-    for _, block in ipairs(blocks) do
-        if block then
-            -- Простая проверка расстояния между центрами
-            local distance = (Marker.Position - block.Position).Magnitude
-            local maxDistance = (Marker.Size.X/2 + block.Size.X/2) -- Упрощенная проверка
-            
-            if distance < maxDistance then
-                return true
-            end
-        end
-    end
-    
-    return false
-end
-
--- Создаем блоки при запуске
-createInvisibleBlocks()
 
 -- Таблица для хранения оригинальных состояний клавиш
 local originalKeyStates = {
