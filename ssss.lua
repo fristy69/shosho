@@ -35,8 +35,8 @@ ScreenGui.Name = "AutoDiveUI"
 ScreenGui.Parent = PLAYER:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 200, 0, 200) -- Увеличиваем размер для слайдера
-MainFrame.Position = UDim2.new(0.5, -100, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 220)
+MainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 2
 MainFrame.BorderColor3 = Color3.fromRGB(100, 100, 100)
@@ -45,118 +45,155 @@ MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 180, 0, 40)
+ToggleButton.Size = UDim2.new(0, 200, 0, 40)
 ToggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
 ToggleButton.Text = "AutoDive: OFF"
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ToggleButton.Parent = MainFrame
 
 local PanicButton = Instance.new("TextButton")
-PanicButton.Size = UDim2.new(0, 180, 0, 40)
-PanicButton.Position = UDim2.new(0.05, 0, 0.3, 0)
+PanicButton.Size = UDim2.new(0, 200, 0, 40)
+PanicButton.Position = UDim2.new(0.05, 0, 0.25, 0)
 PanicButton.Text = "PANIC BUTTON"
 PanicButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 PanicButton.Parent = MainFrame
 
--- Добавляем слайдер для Dive Delay (теперь он не зависит от перемещения MainFrame)
-local DelaySlider = Instance.new("Frame")
-DelaySlider.Name = "DelaySlider"
-DelaySlider.Size = UDim2.new(0, 180, 0, 50)
-DelaySlider.Position = UDim2.new(0.05, 0, 0.55, 0)
-DelaySlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-DelaySlider.BorderSizePixel = 0
-DelaySlider.Parent = MainFrame
+-- слайдер
+local SliderContainer = Instance.new("Frame")
+SliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
+SliderContainer.Position = UDim2.new(0.05, 0, 0.5, 0)
+SliderContainer.BackgroundTransparency = 1
+SliderContainer.Parent = MainFrame
 
-local DelayText = Instance.new("TextLabel")
-DelayText.Name = "DelayText"
-DelayText.Size = UDim2.new(1, 0, 0.4, 0)
-DelayText.Position = UDim2.new(0, 0, 0, 0)
-DelayText.Text = "Dive Delay: 100ms"
-DelayText.TextColor3 = Color3.fromRGB(255, 255, 255)
-DelayText.BackgroundTransparency = 1
-DelayText.Parent = DelaySlider
+local SliderLabel = Instance.new("TextLabel")
+SliderLabel.Size = UDim2.new(1, 0, 0, 20)
+SliderLabel.Position = UDim2.new(0, 0, 0, 0)
+SliderLabel.Text = "Dive Delay: 1ms"
+SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SliderLabel.BackgroundTransparency = 1
+SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+SliderLabel.Parent = SliderContainer
 
 local SliderTrack = Instance.new("Frame")
-SliderTrack.Name = "SliderTrack"
-SliderTrack.Size = UDim2.new(0.9, 0, 0.2, 0)
-SliderTrack.Position = UDim2.new(0.05, 0, 0.6, 0)
-SliderTrack.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+SliderTrack.Name = "Track"
+SliderTrack.Size = UDim2.new(0.7, 0, 0, 6)
+SliderTrack.Position = UDim2.new(0, 0, 0.5, -3)
+SliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
 SliderTrack.BorderSizePixel = 0
-SliderTrack.Parent = DelaySlider
+SliderTrack.Parent = SliderContainer
 
-local SliderThumb = Instance.new("Frame")
-SliderThumb.Name = "SliderThumb"
-SliderThumb.Size = UDim2.new(0, 10, 1.5, 0)
-SliderThumb.Position = UDim2.new(0.1, -5, 0.25, 0) -- Начальное положение (100ms)
-SliderThumb.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-SliderThumb.BorderSizePixel = 0
-SliderThumb.ZIndex = 2 -- Чтобы ползунок был поверх трека
-SliderThumb.Parent = SliderTrack
+local SliderFill = Instance.new("Frame")
+SliderFill.Name = "Fill"
+SliderFill.Size = UDim2.new(0, 0, 1, 0)
+SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+SliderFill.BorderSizePixel = 0
+SliderFill.Parent = SliderTrack
 
--- ============= ВСТАВЛЯЕМ ИСПРАВЛЕННЫЙ КОД СЛАЙДЕРА ЗДЕСЬ =============
--- Обработчик слайдера
-local sliding = false
-local sliderOffset = 0
+local SliderButton = Instance.new("TextButton")
+SliderButton.Name = "Thumb"
+SliderButton.Size = UDim2.new(0, 24, 0, 24)
+SliderButton.Position = UDim2.new(0, -12, 0.5, -12)
+SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SliderButton.BorderSizePixel = 0
+SliderButton.Text = ""
+SliderButton.Parent = SliderContainer
 
--- Функция для обновления положения ползунка
-local function updateSliderPosition()
-    local percentage = currentDiveDelay -- 0.0 до 1.0
-    SliderThumb.Position = UDim2.new(percentage, -5, 0.25, 0)
+
+local TextBox = Instance.new("TextBox")
+TextBox.Name = "DelayInput"
+TextBox.Size = UDim2.new(0.25, 0, 0, 30)
+TextBox.Position = UDim2.new(0.75, 5, 0.5, -15)
+TextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.Text = "1"
+TextBox.PlaceholderText = "1-1000"
+TextBox.ClearTextOnFocus = false
+TextBox.Parent = SliderContainer
+
+
+local minValue = 1    -- мин 1ms
+local maxValue = 1000  -- макс 1000ms (1 секунда)
+local isDragging = false
+currentDiveDelay = 0.001 -- начальное значение
+
+
+local function updateValue(newValue)
+    -- Ограничиваем значение и обновляем интерфейс
+    newValue = math.clamp(newValue, minValue, maxValue)
+    currentDiveDelay = newValue / 1000 -- Конвертируем в секунды
+    
+
+    local percent = (newValue - minValue) / (maxValue - minValue)
+    SliderFill.Size = UDim2.new(percent, 0, 1, 0)
+    SliderButton.Position = UDim2.new(percent, -12, 0.5, -12)
+    SliderLabel.Text = string.format("Dive Delay: %dms", math.floor(newValue))
+    
+
+    TextBox.Text = tostring(math.floor(newValue))
 end
 
--- Функция для обновления текста задержки
-local function updateDelayText()
-    DelayText.Text = string.format("Dive Delay: %dms", math.floor(currentDiveDelay * 1000))
-end
 
--- Обработка перемещения ползунка
-local function handleSliderInput()
-    if sliding then
-        local mouseX = UserInputService:GetMouseLocation().X
-        local trackAbsolutePos = SliderTrack.AbsolutePosition.X
-        local trackAbsoluteSize = SliderTrack.AbsoluteSize.X
-        
-        -- Вычисляем относительное положение (0-1)
-        local relativePos = math.clamp((mouseX - trackAbsolutePos - sliderOffset) / trackAbsoluteSize, 0, 1)
-        
-        -- Обновляем задержку
-        currentDiveDelay = relativePos
-        updateDelayText()
-        updateSliderPosition()
+TextBox.FocusLost:Connect(function(enterPressed)
+    local text = TextBox.Text
+    local number = tonumber(text)
+    
+    if number then
+        updateValue(number)
+    else
+
+        TextBox.Text = tostring(math.floor(currentDiveDelay * 1000))
     end
-end
+end)
 
--- Обработчики событий слайдера
-SliderThumb.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = true
-        -- Запоминаем смещение курсора относительно центра ползунка
-        local thumbAbsolutePos = SliderThumb.AbsolutePosition.X + SliderThumb.AbsoluteSize.X/2
-        sliderOffset = thumbAbsolutePos - SliderTrack.AbsolutePosition.X
-    end
+
+SliderButton.MouseButton1Down:Connect(function()
+    isDragging = true
 end)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = false
+        isDragging = false
     end
 end)
 
--- Добавляем обработку ввода для всего трека
-SliderTrack.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = true
-        sliderOffset = 0 -- При клике на треке смещение не нужно
-        handleSliderInput() -- Немедленно обновляем позицию
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local sliderPos = SliderTrack.AbsolutePosition.X
+        local sliderSize = SliderTrack.AbsoluteSize.X
+        local mousePos = input.Position.X
+        
+        local relativePos = mousePos - sliderPos
+        local percent = math.clamp(relativePos / sliderSize, 0, 1)
+        local newValue = minValue + (maxValue - minValue) * percent
+        
+        updateValue(newValue)
     end
 end)
 
--- Инициализация слайдера
-currentDiveDelay = 0.1 -- Начальное значение (100ms)
-updateDelayText()
-updateSliderPosition()
--- ============= КОНЕЦ ВСТАВКИ ИСПРАВЛЕННОГО КОДА =============
+
+updateValue(minValue)
+
+-- Таблица для хранения оригинальных состояний клавиш
+local originalKeyStates = {
+    [Enum.KeyCode.W] = false,
+    [Enum.KeyCode.A] = false,
+    [Enum.KeyCode.S] = false,
+    [Enum.KeyCode.D] = false,
+    [Enum.KeyCode.LeftControl] = false
+}
+
+-- Таблица соответствия углов и клавиш
+local directionKeys = {
+    [0] = {Enum.KeyCode.W},
+    [45] = {Enum.KeyCode.W, Enum.KeyCode.D},
+    [90] = {Enum.KeyCode.D},
+    [135] = {Enum.KeyCode.S, Enum.KeyCode.D},
+    [180] = {Enum.KeyCode.S},
+    [225] = {Enum.KeyCode.S, Enum.KeyCode.A},
+    [270] = {Enum.KeyCode.A},
+    [315] = {Enum.KeyCode.W, Enum.KeyCode.A}
+}
 
 -- Переменные для управления
 local autoDiveEnabled = false
@@ -175,87 +212,13 @@ local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
 
--- Функция для обновления текста задержки
-local function updateDelayText()
-    DelayText.Text = string.format("Dive Delay: %dms", currentDiveDelay * 1000)
-end
-
--- Обработчик слайдера
-local sliding = false
-local sliderOffset = 0
-
--- Функция для обновления положения ползунка
-local function updateSliderPosition()
-    local percentage = currentDiveDelay -- 0.0 до 1.0
-    SliderThumb.Position = UDim2.new(percentage, -5, 0.25, 0)
-end
-
-SliderThumb.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = true
-        -- Запоминаем смещение курсора относительно центра ползунка
-        local sliderAbsolutePos = SliderThumb.AbsolutePosition.X + SliderThumb.AbsoluteSize.X/2
-        sliderOffset = UserInputService:GetMouseLocation().X - sliderAbsolutePos
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = false
-    end
-end)
-
--- Обработка перемещения ползунка
-local function handleSliderInput()
-    if sliding then
-        local mouseX = UserInputService:GetMouseLocation().X - sliderOffset
-        local trackAbsolutePos = SliderTrack.AbsolutePosition.X
-        local trackAbsoluteSize = SliderTrack.AbsoluteSize.X
-        
-        -- Вычисляем относительное положение (0-1)
-        local relativePos = math.clamp((mouseX - trackAbsolutePos) / trackAbsoluteSize, 0, 1)
-        
-        -- Обновляем задержку
-        currentDiveDelay = relativePos
-        updateDelayText()
-        updateSliderPosition()
-    end
-end
-
-
--- Таблица для хранения оригинальных состояний клавиш
-local originalKeyStates = {
-    [Enum.KeyCode.W] = false,
-    [Enum.KeyCode.A] = false,
-    [Enum.KeyCode.S] = false,
-    [Enum.KeyCode.D] = false,
-    [Enum.KeyCode.LeftControl] = false
-}
-
--- Таблица соответствия углов и клавиш (относительно взгляда игрока)
-local directionKeys = {
-    [0] = {Enum.KeyCode.W},       -- Вперёд
-    [45] = {Enum.KeyCode.W, Enum.KeyCode.D},  -- Вперёд-вправо
-    [90] = {Enum.KeyCode.D},      -- Вправо
-    [135] = {Enum.KeyCode.S, Enum.KeyCode.D}, -- Назад-вправо
-    [180] = {Enum.KeyCode.S},     -- Назад
-    [225] = {Enum.KeyCode.S, Enum.KeyCode.A}, -- Назад-влево
-    [270] = {Enum.KeyCode.A},     -- Влево
-    [315] = {Enum.KeyCode.W, Enum.KeyCode.A}  -- Вперёд-влево
-}
-
 -- Функция для блокировки пользовательского ввода
 local function blockUserInput()
     if inputBlocked then return end
     inputBlocked = true
     
-    -- Сохраняем текущие состояния клавиш
     for key, _ in pairs(originalKeyStates) do
         originalKeyStates[key] = UserInputService:IsKeyDown(key)
-    end
-    
-    -- Отпускаем все клавиши
-    for key, _ in pairs(originalKeyStates) do
         game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
     end
 end
@@ -265,7 +228,6 @@ local function restoreUserInput()
     if not inputBlocked then return end
     inputBlocked = false
     
-    -- Восстанавливаем оригинальные состояния клавиш
     for key, state in pairs(originalKeyStates) do
         if state then
             game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
@@ -285,7 +247,7 @@ local function createDirectionRays()
         rayPart.Size = Vector3.new(0.2, 0.2, 10)
         rayPart.Anchored = true
         rayPart.CanCollide = false
-        rayPart.Transparency = 1 -- Полностью невидимые
+        rayPart.Transparency = 1
         rayPart.Name = "Ray_"..angle
         rayPart.Parent = raysFolder
         rays[angle] = rayPart
@@ -329,7 +291,7 @@ local function PHYSICS_STUFF(velocity, position)
     return landingPosition
 end
 
--- Функция для определения направления к мячу (относительно взгляда игрока)
+-- Функция для определения направления к мячу
 local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     local relativePos = ballPosition - playerPosition
     local lookVector = playerCFrame.LookVector * Vector3.new(1, 0, 1)
@@ -341,7 +303,6 @@ local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     local angle = math.deg(math.atan2(rightDot, forwardDot))
     if angle < 0 then angle = angle + 360 end
     
-    -- Округляем до ближайших 45 градусов
     local roundedAngle = math.floor((angle + 22.5) / 45) * 45
     if roundedAngle >= 360 then roundedAngle = 0 end
     
@@ -350,14 +311,12 @@ end
 
 -- Функция для нажатия клавиш направления
 local function pressDirectionKeys(angle)
-    -- Отпускаем предыдущие клавиши
     if lastDirection then
         for _, key in ipairs(directionKeys[lastDirection]) do
             game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
         end
     end
     
-    -- Нажимаем новые клавиши
     if angle and directionKeys[angle] then
         for _, key in ipairs(directionKeys[angle]) do
             game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
@@ -383,51 +342,34 @@ end
 local function performDiveWithMovement(angle)
     local currentTime = tick()
     if currentTime - lastDiveTime >= DIVE_COOLDOWN then
-        -- Блокируем пользовательский ввод
         blockUserInput()
-        
-        -- Нажимаем клавиши направления
         pressDirectionKeys(angle)
-        
-        -- Ждем перед дайвом (используем установленную задержку)
         task.wait(currentDiveDelay)
         
-        -- Выполняем дайв
         game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
         task.wait(0.1)
         game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
         
-        -- Отпускаем клавиши после дайва
         stopMovement()
-        
-        -- Восстанавливаем пользовательский ввод
         restoreUserInput()
-        
         lastDiveTime = currentTime
     end
 end
 
--- Функция для выполнения приёма мяча (просто клик ЛКМ)
+-- Функция для выполнения приёма мяча
 local function performReceive()
     local currentTime = tick()
     if currentTime - lastRecTime >= REC_COOLDOWN and not isReceiving then
         isReceiving = true
-        
-        -- Блокируем пользовательский ввод
         blockUserInput()
         
-        -- Эмулируем клик левой кнопкой мыши
         game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LButton, false, game)
         task.wait(0.05)
         game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.LButton, false, game)
         
-        -- Отправляем серверу команду на приём
         PlayerAction:FireServer("Receiving")
-        
-        -- Восстанавливаем пользовательский ввод
         restoreUserInput()
         
-        -- Задержка перед следующим возможным приёмом
         task.wait(0.2)
         isReceiving = false
         lastRecTime = tick()
@@ -435,29 +377,21 @@ local function performReceive()
     end
 end
 
--- Функция для перемещения к маркеру через WASD
+-- Функция для перемещения к маркеру
 local function moveToMarker(targetPosition)
     if not character or not rootPart then return end
     
-    -- Проверяем дистанцию
     local distance = (targetPosition - rootPart.Position).Magnitude
     
     if distance < 3 then
-        -- Если достаточно близко - принимаем мяч
         stopMovement()
         performReceive()
     else
-        -- Если еще не достигли цели, продолжаем движение
         shouldMove = true
         reachedBall = false
-        
-        -- Блокируем пользовательский ввод
         blockUserInput()
         
-        -- Определяем направление относительно взгляда игрока
         local angle = getBallDirection(targetPosition, rootPart.Position, rootPart.CFrame)
-        
-        -- Нажимаем соответствующие клавиши движения
         pressDirectionKeys(angle)
         game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PlayerAction"):FireServer(unpack(args))
         local animation = game:GetService("ReplicatedStorage").Assets.Animations.Receive.Default
@@ -476,7 +410,6 @@ ToggleButton.MouseButton1Click:Connect(function()
     else
         ToggleButton.Text = "AutoDive: OFF"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        -- При выключении останавливаем движение и восстанавливаем ввод
         stopMovement()
         restoreUserInput()
     end
@@ -484,7 +417,6 @@ end)
 
 PanicButton.MouseButton1Click:Connect(function()
     scriptActive = false
-    -- Останавливаем движение перед уничтожением и восстанавливаем ввод
     stopMovement()
     restoreUserInput()
     ScreenGui:Destroy()
@@ -504,7 +436,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         else
             ToggleButton.Text = "AutoDive: OFF"
             ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            -- При выключении останавливаем движение и восстанавливаем ввод
             stopMovement()
             restoreUserInput()
         end
@@ -515,12 +446,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- В основном цикле убедитесь, что вызываете handleSliderInput()
+-- Основной цикл
 RunService.RenderStepped:Connect(function()
-    -- Обрабатываем ввод слайдера
-    handleSliderInput()
-    
-     if not scriptActive or not autoDiveEnabled then 
+    if not scriptActive or not autoDiveEnabled then 
         if shouldMove then
             stopMovement()
             restoreUserInput()
@@ -531,7 +459,6 @@ RunService.RenderStepped:Connect(function()
     
     if not character or not rootPart then return end
     
-    -- Обновляем лучи направлений
     updateDirectionRays(rays)
     
     local foundBall = false
@@ -551,23 +478,19 @@ RunService.RenderStepped:Connect(function()
                 
                 if ballSpeed > TARGET_BALL_SPEED then
                     if distance <= DIVE_RADIUS and distance > REC_RADIUS then
-                        -- Если мяч в радиусе дайва
                         local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                         performDiveWithMovement(angle)
                     elseif distance <= REC_RADIUS then
-                        -- Если мяч в радиусе приема
                         if not reachedBall then
                             moveToMarker(landingPosition)
                         end
                     else
-                        -- Если мяч далеко, останавливаем движение
                         if shouldMove then
                             stopMovement()
                             restoreUserInput()
                         end
                     end
                 else
-                    -- Если мяч медленный, останавливаем движение
                     if shouldMove then
                         stopMovement()
                         restoreUserInput()
@@ -577,13 +500,11 @@ RunService.RenderStepped:Connect(function()
         end
     end
     
-    -- Если мяча нет, останавливаем движение
     if not foundBall and shouldMove then
         stopMovement()
         restoreUserInput()
     end
     
-    -- Сбрасываем флаг reachedBall, если мяч снова ушел из радиуса приема
     if foundBall then
         local ballModel = workspace:FindFirstChild("Ball")
         if ballModel then
@@ -607,16 +528,10 @@ PLAYER.CharacterAdded:Connect(function(newCharacter)
     humanoid = character:WaitForChild("Humanoid")
     rootPart = character:WaitForChild("HumanoidRootPart")
     
-    -- Пересоздаем лучи для нового персонажа
     if raysFolder then raysFolder:Destroy() end
     raysFolder, rays = createDirectionRays()
     
-    -- Останавливаем движение при смене персонажа и восстанавливаем ввод
     stopMovement()
     restoreUserInput()
     reachedBall = false
 end)
-
--- Инициализация текста задержки и положения слайдера
-updateDelayText()
-updateSliderPosition()
