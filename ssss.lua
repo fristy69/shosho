@@ -228,6 +228,25 @@ local function isInZone(landingPosition)
            landingPosition.Z >= zoneMin.Z and landingPosition.Z <= zoneMax.Z
 end
 
+-- Функция для определения, в какой части корта находится игрок
+local function getPlayerCourtSide(playerPosition)
+    local court1Min = ZONE_POSITION - Vector3.new(ZONE_SIZE.X/2, 0, ZONE_SIZE.Z)
+    local court1Max = ZONE_POSITION + Vector3.new(ZONE_SIZE.X/2, 0, 0)
+    
+    local court2Min = ZONE_POSITION - Vector3.new(ZONE_SIZE.X/2, 0, 0)
+    local court2Max = ZONE_POSITION + Vector3.new(ZONE_SIZE.X/2, 0, ZONE_SIZE.Z)
+    
+    if playerPosition.X >= court1Min.X and playerPosition.X <= court1Max.X and
+       playerPosition.Z >= court1Min.Z and playerPosition.Z <= court1Max.Z then
+        return 1 -- Левая часть корта
+    elseif playerPosition.X >= court2Min.X and playerPosition.X <= court2Max.X and
+           playerPosition.Z >= court2Min.Z and playerPosition.Z <= court2Max.Z then
+        return 2 -- Правая часть корта
+    else
+        return 0 -- Вне корта
+    end
+end
+
 -- Функция для блокировки пользовательского ввода
 local function blockUserInput()
     if inputBlocked then return end
@@ -474,7 +493,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Основной цикл
 RunService.RenderStepped:Connect(function()
     if not scriptActive or not autoDiveEnabled then 
         if shouldMove then
@@ -506,8 +524,10 @@ RunService.RenderStepped:Connect(function()
                 
                 -- Проверяем, находится ли точка падения в зоне
                 local inZone = isInZone(landingPosition)
+                local playerCourt = getPlayerCourtSide(playerPosition)
+                local ballCourt = getPlayerCourtSide(landingPosition)
                 
-                if inZone and ballSpeed > TARGET_BALL_SPEED - TOLERATE then
+                if inZone and ballSpeed > TARGET_BALL_SPEED - TOLERATE and playerCourt == ballCourt then
                     if distance <= DIVE_RADIUS + TOLERATE and distance > REC_RADIUS + TOLERATE then
                         local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                         performDiveWithMovement(angle)
