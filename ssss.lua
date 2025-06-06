@@ -6,6 +6,8 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInput = game:GetService("VirtualInputManager")
+local UIS = game:GetService("UserInputService")
 
 -- Получаем LocalPlayer
 local PLAYER = Players.LocalPlayer
@@ -15,7 +17,6 @@ local CC = workspace.CurrentCamera
 local character = PLAYER.Character or PLAYER.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
-local args = {"Receiving"}
 
 -- Создаём маркер (невидимый)
 local Marker = Instance.new("Part")
@@ -212,6 +213,7 @@ local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
 
+
 -- Функция для блокировки пользовательского ввода
 local function blockUserInput()
     if inputBlocked then return end
@@ -363,13 +365,6 @@ local function performReceive()
         isReceiving = true
         blockUserInput()
         
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LButton, false, game)
-        task.wait(0.05)
-        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.LButton, false, game)
-        
-        PlayerAction:FireServer("Receiving")
-        restoreUserInput()
-        
         task.wait(0.2)
         isReceiving = false
         lastRecTime = tick()
@@ -377,26 +372,32 @@ local function performReceive()
     end
 end
 
--- Функция для перемещения к маркеру
+local Recced = false
+
+local function REC()
+        Recced = not Recced
+        while Recced and task.wait(0.1) do
+            VirtualInput:SendMouseButtonEvent(0, 0, 0, true, game, false)
+            task.wait(0.01)
+            VirtualInput:SendMouseButtonEvent(0, 0, 0, false, game, false)
+            Recced = not Recced
+        end
+end
+
 local function moveToMarker(targetPosition)
     if not character or not rootPart then return end
-    
+
     local distance = (targetPosition - rootPart.Position).Magnitude
-    
-    if distance < 3 then
+
+    if distance < 2 then
         stopMovement()
-        performReceive()
     else
         shouldMove = true
         reachedBall = false
         blockUserInput()
-        
+
         local angle = getBallDirection(targetPosition, rootPart.Position, rootPart.CFrame)
         pressDirectionKeys(angle)
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PlayerAction"):FireServer(unpack(args))
-        local animation = game:GetService("ReplicatedStorage").Assets.Animations.Receive.Default
-        local animationTrack = humanoid:LoadAnimation(animation)
-        animationTrack:Play()
     end
 end
 
@@ -483,6 +484,7 @@ RunService.RenderStepped:Connect(function()
                     elseif distance <= REC_RADIUS then
                         if not reachedBall then
                             moveToMarker(landingPosition)
+                            REC()
                         end
                     else
                         if shouldMove then
