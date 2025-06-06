@@ -218,23 +218,46 @@ local originalInputEnabled = true
 local reachedBall = false
 
 
+-- Определяем все зоны
+local ZONES = {
+    {
+        position = Vector3.new(0, 0.5, 0),
+        size = Vector3.new(48, 0.2, 95)
+    },
+    {
+        position = Vector3.new(-100, 0.5, 0),
+        size = Vector3.new(48, 0.2, 95)
+    },
+    {
+        position = Vector3.new(100, 0.5, 0),
+        size = Vector3.new(48, 0.2, 95)
+    }
+}
+
 -- Функция для проверки пересечения зоны с точкой падения мяча
 local function isInZone(landingPosition)
-    local zoneMin = ZONE_POSITION - ZONE_SIZE/2 - Vector3.new(TOLERATE, TOLERATE, TOLERATE)
-    local zoneMax = ZONE_POSITION + ZONE_SIZE/2 + Vector3.new(TOLERATE, TOLERATE, TOLERATE)
-    
-    return landingPosition.X >= zoneMin.X and landingPosition.X <= zoneMax.X and
+    for _, zone in ipairs(ZONES) do
+        local zoneMin = zone.position - zone.size/2 - Vector3.new(TOLERATE, TOLERATE, TOLERATE)
+        local zoneMax = zone.position + zone.size/2 + Vector3.new(TOLERATE, TOLERATE, TOLERATE)
+        
+        if landingPosition.X >= zoneMin.X and landingPosition.X <= zoneMax.X and
            landingPosition.Y >= zoneMin.Y and landingPosition.Y <= zoneMax.Y and
-           landingPosition.Z >= zoneMin.Z and landingPosition.Z <= zoneMax.Z
+           landingPosition.Z >= zoneMin.Z and landingPosition.Z <= zoneMax.Z then
+            return true, zone
+        end
+    end
+    return false, nil
 end
 
 -- Функция для определения, в какой части корта находится игрок
-local function getPlayerCourtSide(playerPosition)
-    local court1Min = ZONE_POSITION - Vector3.new(ZONE_SIZE.X/2, 0, ZONE_SIZE.Z)
-    local court1Max = ZONE_POSITION + Vector3.new(ZONE_SIZE.X/2, 0, 0)
+local function getPlayerCourtSide(playerPosition, zone)
+    if not zone then return 0 end
     
-    local court2Min = ZONE_POSITION - Vector3.new(ZONE_SIZE.X/2, 0, 0)
-    local court2Max = ZONE_POSITION + Vector3.new(ZONE_SIZE.X/2, 0, ZONE_SIZE.Z)
+    local court1Min = zone.position - Vector3.new(zone.size.X/2, 0, zone.size.Z)
+    local court1Max = zone.position + Vector3.new(zone.size.X/2, 0, 0)
+    
+    local court2Min = zone.position - Vector3.new(zone.size.X/2, 0, 0)
+    local court2Max = zone.position + Vector3.new(zone.size.X/2, 0, zone.size.Z)
     
     if playerPosition.X >= court1Min.X and playerPosition.X <= court1Max.X and
        playerPosition.Z >= court1Min.Z and playerPosition.Z <= court1Max.Z then
@@ -492,7 +515,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
-
+-- Модифицированный основной цикл
 RunService.RenderStepped:Connect(function()
     if not scriptActive or not autoDiveEnabled then 
         if shouldMove then
@@ -522,19 +545,26 @@ RunService.RenderStepped:Connect(function()
                 local playerPosition = rootPart.Position
                 local distance = (landingPosition - playerPosition).Magnitude
                 
-                -- Проверяем, находится ли точка падения в зоне
-                local inZone = isInZone(landingPosition)
-                local playerCourt = getPlayerCourtSide(playerPosition)
-                local ballCourt = getPlayerCourtSide(landingPosition)
-                
-                if inZone and ballSpeed > TARGET_BALL_SPEED - TOLERATE and playerCourt == ballCourt then
-                    if distance <= DIVE_RADIUS + TOLERATE and distance > REC_RADIUS + TOLERATE then
-                        local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
-                        performDiveWithMovement(angle)
-                    elseif distance <= REC_RADIUS + TOLERATE then
-                        if not reachedBall then
-                            moveToMarker(landingPosition)
-                            REC()
+                -- Проверяем, находится ли точка падения в какой-либо зоне
+                local inZone, currentZone = isInZone(landingPosition)
+                if inZone then
+                    local playerCourt = getPlayerCourtSide(playerPosition, currentZone)
+                    local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
+                    
+                    if ballSpeed > TARGET_BALL_SPEED - TOLERATE and playerCourt == ballCourt then
+                        if distance <= DIVE_RADIUS + TOLERATE and distance > REC_RADIUS + TOLERATE then
+                            local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
+                            performDiveWithMovement(angle)
+                        elseif distance <= REC_RADIUS + TOLERATE then
+                            if not reachedBall then
+                                moveToMarker(landingPosition)
+                                REC()
+                            end
+                        else
+                            if shouldMove then
+                                stopMovement()
+                                restoreUserInput()
+                            end
                         end
                     else
                         if shouldMove then
