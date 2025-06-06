@@ -216,6 +216,7 @@ local shouldMove = false
 local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
+local isDiving = false
 
 
 -- Определяем все зоны
@@ -410,9 +411,11 @@ local function stopMovement()
 end
 
 -- Функция для выполнения дайва с управлением WASD
+-- Модифицируем функцию performDiveWithMovement
 local function performDiveWithMovement(angle)
     local currentTime = tick()
-    if currentTime - lastDiveTime >= DIVE_COOLDOWN then
+    if currentTime - lastDiveTime >= DIVE_COOLDOWN and not isDiving then
+        isDiving = true
         blockUserInput()
         pressDirectionKeys(angle)
         task.wait(currentDiveDelay)
@@ -424,6 +427,10 @@ local function performDiveWithMovement(angle)
         stopMovement()
         restoreUserInput()
         lastDiveTime = currentTime
+        
+        -- Добавляем небольшую задержку после дайва перед возобновлением проверок
+        task.wait(2.5)
+        isDiving = false
     end
 end
 
@@ -458,7 +465,7 @@ local function moveToMarker(targetPosition)
 
     local distance = (targetPosition - rootPart.Position).Magnitude
 
-    if distance < 2 + TOLERATE then -- Добавляем погрешность к расстоянию
+    if distance < 2 then -- Добавляем погрешность к расстоянию
         stopMovement()
     else
         shouldMove = true
@@ -517,7 +524,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 -- Модифицированный основной цикл
 RunService.RenderStepped:Connect(function()
-    if not scriptActive or not autoDiveEnabled then 
+    if not scriptActive or not autoDiveEnabled or isDiving then 
         if shouldMove then
             stopMovement()
             restoreUserInput()
@@ -551,11 +558,11 @@ RunService.RenderStepped:Connect(function()
                     local playerCourt = getPlayerCourtSide(playerPosition, currentZone)
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
-                    if ballSpeed > TARGET_BALL_SPEED - TOLERATE and playerCourt == ballCourt then
-                        if distance <= DIVE_RADIUS + TOLERATE and distance > REC_RADIUS + TOLERATE then
+                    if ballSpeed > TARGET_BALL_SPEED and playerCourt == ballCourt then
+                        if distance <= DIVE_RADIUS and distance > REC_RADIUS and not isDiving then
                             local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                             performDiveWithMovement(angle)
-                        elseif distance <= REC_RADIUS + TOLERATE then
+                        elseif distance <= REC_RADIUS and not isDiving then
                             if not reachedBall then
                                 moveToMarker(landingPosition)
                                 REC()
@@ -596,7 +603,7 @@ RunService.RenderStepped:Connect(function()
                 local landingPosition = PHYSICS_STUFF(initialVelocity, ball.Position)
                 local distance = (landingPosition - rootPart.Position).Magnitude
                 
-                if distance > REC_RADIUS + TOLERATE then
+                if distance > REC_RADIUS then
                     reachedBall = false
                 end
             end
