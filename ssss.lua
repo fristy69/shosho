@@ -18,6 +18,13 @@ local character = PLAYER.Character or PLAYER.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 
+-- Погрешность
+local TOLERATE = 1
+
+-- Зона для проверки (позиция и размеры)
+local ZONE_POSITION = Vector3.new(0, 0.5, 0)
+local ZONE_SIZE = Vector3.new(48, 0.2, 95)
+
 -- Создаём маркер (невидимый)
 local Marker = Instance.new("Part")
 Marker.Name = "Marker"
@@ -124,13 +131,11 @@ local function updateValue(newValue)
     newValue = math.clamp(newValue, minValue, maxValue)
     currentDiveDelay = newValue / 1000 -- Конвертируем в секунды
     
-
     local percent = (newValue - minValue) / (maxValue - minValue)
     SliderFill.Size = UDim2.new(percent, 0, 1, 0)
     SliderButton.Position = UDim2.new(percent, -12, 0.5, -12)
     SliderLabel.Text = string.format("Dive Delay: %dms", math.floor(newValue))
     
-
     TextBox.Text = tostring(math.floor(newValue))
 end
 
@@ -142,7 +147,6 @@ TextBox.FocusLost:Connect(function(enterPressed)
     if number then
         updateValue(number)
     else
-
         TextBox.Text = tostring(math.floor(currentDiveDelay * 1000))
     end
 end)
@@ -214,6 +218,16 @@ local originalInputEnabled = true
 local reachedBall = false
 
 
+-- Функция для проверки пересечения зоны с точкой падения мяча
+local function isInZone(landingPosition)
+    local zoneMin = ZONE_POSITION - ZONE_SIZE/2 - Vector3.new(TOLERATE, TOLERATE, TOLERATE)
+    local zoneMax = ZONE_POSITION + ZONE_SIZE/2 + Vector3.new(TOLERATE, TOLERATE, TOLERATE)
+    
+    return landingPosition.X >= zoneMin.X and landingPosition.X <= zoneMax.X and
+           landingPosition.Y >= zoneMin.Y and landingPosition.Y <= zoneMax.Y and
+           landingPosition.Z >= zoneMin.Z and landingPosition.Z <= zoneMax.Z
+end
+
 -- Функция для блокировки пользовательского ввода
 local function blockUserInput()
     if inputBlocked then return end
@@ -284,16 +298,26 @@ local function GetBallSpeed(ballModel)
     return 0
 end
 
--- Функция для расчёта позиции падения мяча
+-- Функция для расчёта позиции падения мяча с погрешностью
 local function PHYSICS_STUFF(velocity, position)
     local acceleration = -workspace.Gravity
     local timeToLand = (-velocity.y - math.sqrt(velocity.y * velocity.y - 4 * 0.5 * acceleration * position.y)) / (2 * 0.5 * acceleration)
+    timeToLand = timeToLand + (TOLERATE * 0.01) -- Добавляем погрешность к времени
+    
     local horizontalVelocity = Vector3.new(velocity.x, 0, velocity.z)
     local landingPosition = position + horizontalVelocity * timeToLand + Vector3.new(0, -position.y, 0)
+    
+    -- Добавляем случайную погрешность к позиции
+    landingPosition = landingPosition + Vector3.new(
+        (math.random() * 2 - 1) * TOLERATE,
+        (math.random() * 2 - 1) * TOLERATE,
+        (math.random() * 2 - 1) * TOLERATE
+    )
+    
     return landingPosition
 end
 
--- Функция для определения направления к мячу
+-- Функция для определения направления к мячу с погрешностью
 local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     local relativePos = ballPosition - playerPosition
     local lookVector = playerCFrame.LookVector * Vector3.new(1, 0, 1)
@@ -304,6 +328,9 @@ local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     
     local angle = math.deg(math.atan2(rightDot, forwardDot))
     if angle < 0 then angle = angle + 360 end
+    
+    -- Добавляем погрешность к углу
+    angle = angle + (math.random() * 2 - 1) * TOLERATE
     
     local roundedAngle = math.floor((angle + 22.5) / 45) * 45
     if roundedAngle >= 360 then roundedAngle = 0 end
@@ -375,13 +402,13 @@ end
 local Recced = false
 
 local function REC()
+    Recced = not Recced
+    while Recced and task.wait(0.1) do
+        VirtualInput:SendMouseButtonEvent(0, 0, 0, true, game, false)
+        task.wait(0.01)
+        VirtualInput:SendMouseButtonEvent(0, 0, 0, false, game, false)
         Recced = not Recced
-        while Recced and task.wait(0.1) do
-            VirtualInput:SendMouseButtonEvent(0, 0, 0, true, game, false)
-            task.wait(0.01)
-            VirtualInput:SendMouseButtonEvent(0, 0, 0, false, game, false)
-            Recced = not Recced
-        end
+    end
 end
 
 local function moveToMarker(targetPosition)
@@ -389,7 +416,7 @@ local function moveToMarker(targetPosition)
 
     local distance = (targetPosition - rootPart.Position).Magnitude
 
-    if distance < 2 then
+    if distance < 2 + TOLERATE then -- Добавляем погрешность к расстоянию
         stopMovement()
     else
         shouldMove = true
@@ -477,11 +504,14 @@ RunService.RenderStepped:Connect(function()
                 local playerPosition = rootPart.Position
                 local distance = (landingPosition - playerPosition).Magnitude
                 
-                if ballSpeed > TARGET_BALL_SPEED then
-                    if distance <= DIVE_RADIUS and distance > REC_RADIUS then
+                -- Проверяем, находится ли точка падения в зоне
+                local inZone = isInZone(landingPosition)
+                
+                if inZone and ballSpeed > TARGET_BALL_SPEED - TOLERATE then
+                    if distance <= DIVE_RADIUS + TOLERATE and distance > REC_RADIUS + TOLERATE then
                         local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                         performDiveWithMovement(angle)
-                    elseif distance <= REC_RADIUS then
+                    elseif distance <= REC_RADIUS + TOLERATE then
                         if not reachedBall then
                             moveToMarker(landingPosition)
                             REC()
@@ -516,7 +546,7 @@ RunService.RenderStepped:Connect(function()
                 local landingPosition = PHYSICS_STUFF(initialVelocity, ball.Position)
                 local distance = (landingPosition - rootPart.Position).Magnitude
                 
-                if distance > REC_RADIUS then
+                if distance > REC_RADIUS + TOLERATE then
                     reachedBall = false
                 end
             end
