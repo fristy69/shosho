@@ -34,7 +34,7 @@ Marker.BrickColor = BrickColor.new("Bright violet")
 Marker.CanCollide = false
 Marker.Anchored = true
 Marker.Parent = workspace
-Marker.Transparency = 0
+Marker.Transparency = 1
 Marker.Material = Enum.Material.Neon
 
 -- Создаём UI переключатель
