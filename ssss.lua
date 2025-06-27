@@ -43,7 +43,7 @@ ScreenGui.Name = "AutoDiveUI"
 ScreenGui.Parent = PLAYER:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 220)
+MainFrame.Size = UDim2.new(0, 220, 0, 180)
 MainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 2
@@ -67,7 +67,7 @@ PanicButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 PanicButton.Parent = MainFrame
 
--- слайдер
+-- Слайдер задержки
 local SliderContainer = Instance.new("Frame")
 SliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
 SliderContainer.Position = UDim2.new(0.05, 0, 0.5, 0)
@@ -107,7 +107,6 @@ SliderButton.BorderSizePixel = 0
 SliderButton.Text = ""
 SliderButton.Parent = SliderContainer
 
-
 local TextBox = Instance.new("TextBox")
 TextBox.Name = "DelayInput"
 TextBox.Size = UDim2.new(0.25, 0, 0, 30)
@@ -119,114 +118,13 @@ TextBox.PlaceholderText = "1-1000"
 TextBox.ClearTextOnFocus = false
 TextBox.Parent = SliderContainer
 
-local ZSliderContainer = Instance.new("Frame")
-ZSliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
-ZSliderContainer.Position = UDim2.new(0.05, 0, 0.65, 0)
-ZSliderContainer.BackgroundTransparency = 1
-ZSliderContainer.Parent = MainFrame
-
-local ZSliderLabel = Instance.new("TextLabel")
-ZSliderLabel.Size = UDim2.new(1, 0, 0, 20)
-ZSliderLabel.Position = UDim2.new(0, 0, 0, 0)
-ZSliderLabel.Text = "Z: 0-5"
-ZSliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ZSliderLabel.BackgroundTransparency = 1
-ZSliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-ZSliderLabel.Parent = ZSliderContainer
-
-local ZSliderTrack = Instance.new("Frame")
-ZSliderTrack.Name = "Track"
-ZSliderTrack.Size = UDim2.new(0.7, 0, 0, 6)
-ZSliderTrack.Position = UDim2.new(0, 0, 0.5, -3)
-ZSliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-ZSliderTrack.BorderSizePixel = 0
-ZSliderTrack.Parent = ZSliderContainer
-
-local ZSliderFill = Instance.new("Frame")
-ZSliderFill.Name = "Fill"
-ZSliderFill.Size = UDim2.new(0.5, 0, 1, 0)
-ZSliderFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- ЦЦВЕТ
-ZSliderFill.BorderSizePixel = 0
-ZSliderFill.Parent = ZSliderTrack
-
-local ZSliderButton = Instance.new("TextButton")
-ZSliderButton.Name = "Thumb"
-ZSliderButton.Size = UDim2.new(0, 24, 0, 24)
-ZSliderButton.Position = UDim2.new(0.5, -12, 0.5, -12)
-ZSliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ZSliderButton.BorderSizePixel = 0
-ZSliderButton.Text = ""
-ZSliderButton.Parent = ZSliderContainer 
-
-local ZTextBox = Instance.new("TextBox")
-ZTextBox.Name = "ZInput"
-ZTextBox.Size = UDim2.new(0.25, 0, 0, 30)
-ZTextBox.Position = UDim2.new(0.75, 5, 0.5, -15)
-ZTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-ZTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-ZTextBox.Text = "1"
-ZTextBox.PlaceholderText = "015"
-ZTextBox.ClearTextOnFocus = false
-ZTextBox.Parent = ZSliderContainer
-
-local XSliderContainer = Instance.new("Frame")
-XSliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
-XSliderContainer.Position = UDim2.new(0.05, 0, 0.8, 0)
-XSliderContainer.BackgroundTransparency = 1
-XSliderContainer.Parent = MainFrame
-
-local XSliderLabel = Instance.new("TextLabel")
-XSliderLabel.Size = UDim2.new(1, 0, 0, 20)
-XSliderLabel.Position = UDim2.new(0, 0, 0, 0)
-XSliderLabel.Text = "X: 0-5"
-XSliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-XSliderLabel.BackgroundTransparency = 1
-XSliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-XSliderLabel.Parent = XSliderContainer
-
-local XSliderTrack = Instance.new("Frame")
-XSliderTrack.Name = "Track"
-XSliderTrack.Size = UDim2.new(0.7, 0, 0, 6)
-XSliderTrack.Position = UDim2.new(0, 0, 0.5, -3)
-XSliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-XSliderTrack.BorderSizePixel = 0
-XSliderTrack.Parent = XSliderContainer
-
-local XSliderFill = Instance.new("Frame")
-XSliderFill.Name = "Fill"
-XSliderFill.Size = UDim2.new(0.5, 0, 1, 0)
-XSliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- ТОЖЕ ЦВЕТ
-XSliderFill.BorderSizePixel = 0
-XSliderFill.Parent = XSliderTrack
-
-local XSliderButton = Instance.new("TextButton")
-XSliderButton.Name = "Thumb"
-XSliderButton.Size = UDim2.new(0, 24, 0, 24)
-XSliderButton.Position = UDim2.new(0.5, -12, 0.5, -12)
-XSliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-XSliderButton.BorderSizePixel = 0
-XSliderButton.Text = ""
-XSliderButton.Parent = XSliderContainer
-
-local XTextBox = Instance.new("TextBox")
-XTextBox.Name = "XInput"
-XTextBox.Size = UDim2.new(0.25, 0, 0, 30)
-XTextBox.Position = UDim2.new(0.75, 5, 0.5, -15)
-XTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-XTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-XTextBox.Text = "1"
-XTextBox.PlaceholderText = "0-5"
-XTextBox.ClearTextOnFocus = false
-XTextBox.Parent = XSliderContainer
-
-
-
+-- Настройки слайдера задержки
 local minValue = 1    -- мин 1ms
 local maxValue = 1000  -- макс 1000ms (1 секунда)
 local isDragging = false
-currentDiveDelay = 0.001 -- начальное значение
+local currentDiveDelay = 0.001 -- начальное значение (в секундах)
 
-
+-- Функция обновления значения задержки
 local function updateValue(newValue)
     -- Ограничиваем значение и обновляем интерфейс
     newValue = math.clamp(newValue, minValue, maxValue)
@@ -240,7 +138,7 @@ local function updateValue(newValue)
     TextBox.Text = tostring(math.floor(newValue))
 end
 
-
+-- Обработчики слайдера
 TextBox.FocusLost:Connect(function(enterPressed)
     local text = TextBox.Text
     local number = tonumber(text)
@@ -251,7 +149,6 @@ TextBox.FocusLost:Connect(function(enterPressed)
         TextBox.Text = tostring(math.floor(currentDiveDelay * 1000))
     end
 end)
-
 
 SliderButton.MouseButton1Down:Connect(function()
     isDragging = true
@@ -277,144 +174,8 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-
+-- Инициализация слайдера
 updateValue(minValue)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if isDraggingZ then
-            local sliderPos = ZSliderTrack.AbsolutePosition.X
-            local sliderSize = ZSliderTrack.AbsoluteSize.X
-            local mousePos = input.Position.X
-
-            local relativePos = mousePos - sliderPos
-            local percent = math.clamp(relativePos / sliderSize, 0, 1)
-            local newValue = percent * 100
-
-            updateZValue(newValue)
-        end
-
-        if isDraggingX then
-            local sliderPos = XSliderTrack.AbsolutePosition.X
-            local sliderSize = XSliderTrack.AbsoluteSize.X
-            local mousePos = input.Position.X
-
-            local relativePos = mousePos - sliderPos
-            local percent = math.clamp(relativePos / sliderSize, 0, 1)
-            local newValue = percent * 100
-
-            updateXValue(newValue)
-        end
-    end
-end)
-
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingZ = false
-        isDraggingX = false
-    end
-end)
-
-ZTextBox.FocusLost:Connect(function()
-    local text = ZTextBox.Text
-    local number = tonumber(text)
-
-    if number then
-        updateZValue(number)
-    else
-        ZTextBox.Text = tostring(currentZValue)
-    end
-end)
-
-XTextBox.FocusLost:Connect(function()
-    local text = XTextBox.Text
-    local number = tonumber(text)
-
-    if number then
-        updateXValue(number)
-    else
-        XTextBox.Text = tostring(currentXValue)
-    end
-end)
-
--- Переменные для смещений
-local currentXValue = 0
-local currentZValue = 0
-
-local function updateZValue(newValue)
-    newValue = math.clamp(newValue, 0, 5)
-    currentZValue = newValue
-
-    local percent = newValue / 5
-    ZSliderFill.Size = UDim2.new(percent, 0, 1, 0)
-    ZSliderButton.Position = UDim2.new(percent, -12, 0.5, -12)
-    ZSliderLabel.Text = string.format("Z: %d", math.floor(newValue))
-end
-
-
-local function updateXValue(newValue)
-    newValue = math.clamp(newValue, 0, 5)
-    currentXValue = newValue
-
-    local percent = newValue / 5
-    XSliderFill.Size = UDim2.new(percent, 0, 1, 0)
-    XSliderButton.Position = UDim2.new(percent, -12, 0.5, -12)
-    XSliderLabel.Text = string.format("X: %d", math.floor(newValue))
-end
-
-
--- Обработчики для Z слайдера
-ZSliderButton.MouseButton1Down:Connect(function()
-    isDraggingZ = true
-end)
-
-ZTextBox.FocusLost:Connect(function()
-    local num = tonumber(ZTextBox.Text)
-    if num then updateZValue(num) end
-end)
-
--- Обработчики для X слайдера
-XSliderButton.MouseButton1Down:Connect(function()
-    isDraggingX = true
-end)
-
-XTextBox.FocusLost:Connect(function()
-    local num = tonumber(XTextBox.Text)
-    if num then updateXValue(num) end
-end)
-
--- Общий обработчик перемещения мыши
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if isDraggingZ then
-            local sliderPos = ZSliderTrack.AbsolutePosition.X
-            local sliderSize = ZSliderTrack.AbsoluteSize.X
-            local mousePos = input.Position.X
-            local percent = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
-            updateZValue(percent * 5)
-        end
-        
-        if isDraggingX then
-            local sliderPos = XSliderTrack.AbsolutePosition.X
-            local sliderSize = XSliderTrack.AbsoluteSize.X
-            local mousePos = input.Position.X
-            local percent = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
-            updateXValue(percent * 5)
-        end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingZ = false
-        isDraggingX = false
-    end
-end)
-
--- Инициализация значений
-updateZValue(0)
-updateXValue(0)
 
 -- Таблица для хранения оригинальных состояний клавиш
 local originalKeyStates = {
@@ -454,8 +215,6 @@ local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
 local isDiving = false
-
-
 
 -- Определяем все зоны
 local ZONES = {
@@ -586,19 +345,10 @@ local function PHYSICS_STUFF(velocity, position)
     local horizontalVelocity = Vector3.new(velocity.x, 0, velocity.z)
     local landingPosition = position + horizontalVelocity * timeToLand + Vector3.new(0, -position.y, 0)
     
-    -- Применяем контролируемую погрешность
-    if currentXValue > 0 then
-        landingPosition = landingPosition + Vector3.new(
-            (math.random() * 2 - 1) * currentXValue,  -- Случайное смещение по X
-            0,
-            (math.random() * 2 - 1) * currentZValue   -- Случайное смещение по Z
-        )
-    end
-    
     return landingPosition
 end
 
--- Функция для определения направления к мячу с погрешностью
+-- Функция для определения направления к мячу
 local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     local relativePos = ballPosition - playerPosition
     local lookVector = playerCFrame.LookVector * Vector3.new(1, 0, 1)
@@ -609,9 +359,6 @@ local function getBallDirection(ballPosition, playerPosition, playerCFrame)
     
     local angle = math.deg(math.atan2(rightDot, forwardDot))
     if angle < 0 then angle = angle + 360 end
-    
-    -- Добавляем погрешность к углу
-    angle = angle + (math.random() * 2 - 1) * TOLERATE
     
     local roundedAngle = math.floor((angle + 22.5) / 45) * 45
     if roundedAngle >= 360 then roundedAngle = 0 end
@@ -649,14 +396,13 @@ local function stopMovement()
 end
 
 -- Функция для выполнения дайва с управлением WASD
--- Модифицируем функцию performDiveWithMovement
 local function performDiveWithMovement(angle)
     local currentTime = tick()
     if currentTime - lastDiveTime >= DIVE_COOLDOWN and not isDiving then
         isDiving = true
         blockUserInput()
         pressDirectionKeys(angle)
-        task.wait(currentDiveDelay)
+        task.wait(currentDiveDelay) -- Используем установленную задержку
         
         game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
         task.wait(0.1)
@@ -666,23 +412,8 @@ local function performDiveWithMovement(angle)
         restoreUserInput()
         lastDiveTime = currentTime
         
-        -- Добавляем небольшую задержку после дайва перед возобновлением проверок
         task.wait(2.5)
         isDiving = false
-    end
-end
-
--- Функция для выполнения приёма мяча
-local function performReceive()
-    local currentTime = tick()
-    if currentTime - lastRecTime >= REC_COOLDOWN and not isReceiving then
-        isReceiving = true
-        blockUserInput()
-        
-        task.wait(0.2)
-        isReceiving = false
-        lastRecTime = tick()
-        reachedBall = true
     end
 end
 
@@ -703,7 +434,7 @@ local function moveToMarker(targetPosition)
 
     local distance = (targetPosition - rootPart.Position).Magnitude
 
-    if distance < 2 then -- Добавляем погрешность к расстоянию
+    if distance < 2 then
         stopMovement()
     else
         shouldMove = true
@@ -760,7 +491,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
--- Модифицированный основной цикл
+
+-- Основной цикл
 RunService.RenderStepped:Connect(function()
     if not scriptActive or not autoDiveEnabled or isDiving then 
         if shouldMove then
