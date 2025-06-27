@@ -206,7 +206,9 @@ local DIVE_COOLDOWN = 1
 local REC_COOLDOWN = 0.5
 local DIVE_RADIUS = 15
 local REC_RADIUS = 9
-local TARGET_BALL_SPEED = 43
+local MIN_RUN_SPEED = 44  -- Минимальная скорость для режима "бег к мячу"
+local MAX_RUN_SPEED = 70  -- Максимальная скорость для режима "бег к мячу"
+local DIVE_SPEED = 70     -- Скорость, при которой включается обычное поведение (дайвы и приемы)
 local scriptActive = true
 local isReceiving = false
 local lastDirection = nil
@@ -429,7 +431,8 @@ local function REC()
     end
 end
 
-local function moveToMarker(targetPosition)
+-- Модифицируем функцию moveToMarker для учета скорости
+local function moveToMarker(targetPosition, ballSpeed)
     if not character or not rootPart then return end
 
     local distance = (targetPosition - rootPart.Position).Magnitude
@@ -441,8 +444,15 @@ local function moveToMarker(targetPosition)
         reachedBall = false
         blockUserInput()
 
-        local angle = getBallDirection(targetPosition, rootPart.Position, rootPart.CFrame)
-        pressDirectionKeys(angle)
+        -- Если скорость в диапазоне 44-70, просто бежим к мячу
+        if ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED then
+            local angle = getBallDirection(targetPosition, rootPart.Position, rootPart.CFrame)
+            pressDirectionKeys(angle)
+        -- Если скорость выше 70, используем стандартное поведение
+        elseif ballSpeed > DIVE_SPEED then
+            -- Стандартная логика будет обработана в основном цикле
+            return
+        end
     end
 end
 
@@ -492,7 +502,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Основной цикл
+-- Модифицируем основной цикл
 RunService.RenderStepped:Connect(function()
     if not scriptActive or not autoDiveEnabled or isDiving then 
         if shouldMove then
@@ -528,13 +538,14 @@ RunService.RenderStepped:Connect(function()
                     local playerCourt = getPlayerCourtSide(playerPosition, currentZone)
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
-                    if ballSpeed > TARGET_BALL_SPEED and playerCourt == ballCourt then
+                    -- Если скорость выше DIVE_SPEED (70), используем стандартное поведение
+                    if ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
                         if distance <= DIVE_RADIUS and distance > REC_RADIUS and not isDiving then
                             local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                             performDiveWithMovement(angle)
                         elseif distance <= REC_RADIUS and not isDiving then
                             if not reachedBall then
-                                moveToMarker(landingPosition)
+                                moveToMarker(landingPosition, ballSpeed)
                                 REC()
                             end
                         else
@@ -542,6 +553,12 @@ RunService.RenderStepped:Connect(function()
                                 stopMovement()
                                 restoreUserInput()
                             end
+                        end
+                    -- Если скорость между MIN_RUN_SPEED (44) и MAX_RUN_SPEED (70), просто бежим к мячу
+                    elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt then
+                        if not reachedBall then
+                            moveToMarker(landingPosition, ballSpeed)
+                            REC()
                         end
                     else
                         if shouldMove then
