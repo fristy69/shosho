@@ -206,7 +206,7 @@ local DIVE_COOLDOWN = 1
 local REC_COOLDOWN = 0.5
 local DIVE_RADIUS = 15
 local REC_RADIUS = 9
-local MIN_RUN_SPEED = 44  -- Минимальная скорость для режима "бег к мячу"
+local MIN_RUN_SPEED = 45  -- Минимальная скорость для режима "бег к мячу"
 local MAX_RUN_SPEED = 70  -- Максимальная скорость для режима "бег к мячу"
 local DIVE_SPEED = 70     -- Скорость, при которой включается обычное поведение (дайвы и приемы)
 local scriptActive = true
@@ -431,29 +431,70 @@ local function REC()
     end
 end
 
--- Модифицируем функцию moveToMarker для учета скорости
-local function moveToMarker(targetPosition, ballSpeed)
+local function moveToMarker(targetPosition)
     if not character or not rootPart then return end
-
+    
+    -- Получаем хитбокс приема игрока
+    local recHitbox = workspace:FindFirstChild(PLAYER.Name) and workspace[PLAYER.Name]:FindFirstChild("RecHitbox")
+    if not recHitbox then return end
+    
+    -- Вычисляем расстояние до цели
     local distance = (targetPosition - rootPart.Position).Magnitude
-
-    if distance < 2 then
-        stopMovement()
-    else
-        shouldMove = true
-        reachedBall = false
-        blockUserInput()
-
-        -- Если скорость в диапазоне 44-70, просто бежим к мячу
-        if ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED then
-            local angle = getBallDirection(targetPosition, rootPart.Position, rootPart.CFrame)
-            pressDirectionKeys(angle)
-        -- Если скорость выше 70, используем стандартное поведение
-        elseif ballSpeed > DIVE_SPEED then
-            -- Стандартная логика будет обработана в основном цикле
-            return
+    
+    -- Получаем параметры хитбокса
+    local hitboxSize = recHitbox.Size
+    local hitboxRadius = math.max(hitboxSize.X, hitboxSize.Y, hitboxSize.Z) / 2
+    local hitboxPosition = recHitbox.CFrame.Position
+    
+    -- Проверяем, находится ли цель в радиусе хитбокса (с небольшой погрешностью)
+    local distanceToHitbox = (targetPosition - hitboxPosition).Magnitude
+    local inRecRange = distanceToHitbox <= (hitboxRadius) -- +2 как погрешность
+    
+    -- Если мяч в зоне приема - останавливаемся
+    if inRecRange then
+        if lastDirection then
+            for _, key in ipairs(directionKeys[lastDirection]) do
+                VirtualInput:SendKeyEvent(false, key, false, game)
+            end
+            lastDirection = nil
+        end
+        return
+    end
+    
+    -- Вычисляем направление к цели
+    local relativePos = targetPosition - rootPart.Position
+    local lookVector = rootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
+    local rightVector = rootPart.CFrame.RightVector * Vector3.new(1, 0, 1)
+    
+    local forwardDot = lookVector:Dot(relativePos.Unit)
+    local rightDot = rightVector:Dot(relativePos.Unit)
+    
+    local angle = math.deg(math.atan2(rightDot, forwardDot))
+    if angle < 0 then angle = angle + 360 end
+    
+    local roundedAngle = math.floor((angle + 22.5) / 45) * 45
+    if roundedAngle >= 360 then roundedAngle = 0 end
+    
+    -- Если направление не изменилось - ничего не делаем
+    if lastDirection == roundedAngle then
+        return
+    end
+    
+    -- Отпускаем предыдущие клавиши
+    if lastDirection then
+        for _, key in ipairs(directionKeys[lastDirection]) do
+            VirtualInput:SendKeyEvent(false, key, false, game)
         end
     end
+    
+    -- Нажимаем новые клавиши
+    if directionKeys[roundedAngle] then
+        for _, key in ipairs(directionKeys[roundedAngle]) do
+            VirtualInput:SendKeyEvent(true, key, false, game)
+        end
+    end
+    
+    lastDirection = roundedAngle
 end
 
 -- Обработчики UI
@@ -532,16 +573,36 @@ RunService.RenderStepped:Connect(function()
                 local playerPosition = rootPart.Position
                 local distance = (landingPosition - playerPosition).Magnitude
                 
+                -- Определяем направление к мячу
+                local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
+                
                 -- Проверяем, находится ли точка падения в какой-либо зоне
                 local inZone, currentZone = isInZone(landingPosition)
                 if inZone then
                     local playerCourt = getPlayerCourtSide(playerPosition, currentZone)
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
-                    -- Если скорость выше DIVE_SPEED (70), используем стандартное поведение
-                    if ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
+                    -- Если мяч приземляется прямо за игроком (180 градусов)
+                    if angle == 180 then
+                        -- Просто нажимаем S и бежим за мячом
+                        if not inputBlocked then
+                            blockUserInput()
+                            VirtualInput:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+                            shouldMove = true
+                            reachedBall = false
+                        end
+                        
+                        -- Если мяч в зоне приема - выполняем прием
+                        if distance <= REC_RADIUS then
+                            VirtualInput:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+                            REC()
+                            shouldMove = false
+                            reachedBall = true
+                            restoreUserInput()
+                        end
+                    -- Для всех других направлений - стандартное поведение
+                    elseif ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
                         if distance <= DIVE_RADIUS and distance > REC_RADIUS and not isDiving then
-                            local angle = getBallDirection(landingPosition, playerPosition, rootPart.CFrame)
                             performDiveWithMovement(angle)
                         elseif distance <= REC_RADIUS and not isDiving then
                             if not reachedBall then
@@ -554,7 +615,6 @@ RunService.RenderStepped:Connect(function()
                                 restoreUserInput()
                             end
                         end
-                    -- Если скорость между MIN_RUN_SPEED (44) и MAX_RUN_SPEED (70), просто бежим к мячу
                     elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt then
                         if not reachedBall then
                             moveToMarker(landingPosition, ballSpeed)
