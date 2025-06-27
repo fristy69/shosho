@@ -588,6 +588,7 @@ RunService.RenderStepped:Connect(function()
                         if not inputBlocked then
                             blockUserInput()
                             VirtualInput:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+                            REC()
                             shouldMove = true
                             reachedBall = false
                         end
