@@ -630,6 +630,56 @@ local function stopMovement()
     reachedBall = true
 end
 
+-- Функция для получения клавиши дайва из настроек управления
+local function GetDiveKey()
+    -- Получаем локального игрока
+    local player = game:GetService("Players").LocalPlayer
+    if not player then return Enum.KeyCode.LeftControl end -- значение по умолчанию
+    
+    -- Проверяем PlayerGui
+    local playerGui = player:FindFirstChild("PlayerGui")
+    if not playerGui then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем HUD
+    local hud = playerGui:FindFirstChild("HUD")
+    if not hud then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем MainFrame
+    local mainFrame = hud:FindFirstChild("MainFrame")
+    if not mainFrame then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем MenuDisplay
+    local menuDisplay = mainFrame:FindFirstChild("MenuDisplay")
+    if not menuDisplay then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем Keybinds
+    local keybinds = menuDisplay:FindFirstChild("Keybinds")
+    if not keybinds then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем KeybindsFrame
+    local keybindsFrame = keybinds:FindFirstChild("KeybindsFrame")
+    if not keybindsFrame then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем Keyboard
+    local keyboard = keybindsFrame:FindFirstChild("Keyboard")
+    if not keyboard then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем Dive
+    local dive = keyboard:FindFirstChild("Dive")
+    if not dive then return Enum.KeyCode.LeftControl end
+    
+    -- Ищем BindSelect
+    local bindSelect = dive:FindFirstChild("BindSelect")
+    if not bindSelect or not bindSelect:IsA("TextButton") then return Enum.KeyCode.LeftControl end
+    
+    -- Получаем текст кнопки и преобразуем в KeyCode
+    local keyText = bindSelect.Text
+    return Enum.KeyCode[keyText] or Enum.KeyCode.LeftControl
+end
+
+-- Получаем клавишу дайва при старте
+local diveKey = GetDiveKey()
+
 -- Функция для выполнения дайва с управлением WASD
 local function performDiveWithMovement(angle)
     local currentTime = tick()
@@ -639,9 +689,10 @@ local function performDiveWithMovement(angle)
         pressDirectionKeys(angle)
         task.wait(currentDiveDelay) -- Используем установленную задержку
         
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+        -- Используем полученную клавишу дайва
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, diveKey, false, game)
         task.wait(0.1)
-        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, diveKey, false, game)
         
         stopMovement()
         restoreUserInput()
