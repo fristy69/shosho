@@ -521,6 +521,10 @@ local function restoreUserInput()
     
     for key, state in pairs(originalKeyStates) do
         if state then
+            VirtualInput:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+            VirtualInput:SendKeyEvent(false, Enum.KeyCode.D, false, game)
+            VirtualInput:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+            VirtualInput:SendKeyEvent(false, Enum.KeyCode.A, false, game)
             game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
         end
     end
@@ -869,11 +873,19 @@ RunService.RenderStepped:Connect(function()
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
                     -- Если мяч приземляется прямо за игроком (180 градусов)
-                    if angle == 180 and distance <= 10 then
-                        -- Просто нажимаем S и бежим за мячом
+                    if angle == 180 and distance <= DIVE_RADIUS then
+                        -- Если мяч за спиной и близко - бежим назад (S)
                         if not inputBlocked then
                             blockUserInput()
+                            -- Отпускаем все предыдущие клавиши
+                            if lastDirection then
+                                for _, key in ipairs(directionKeys[lastDirection]) do
+                                    VirtualInput:SendKeyEvent(false, key, false, game)
+                                end
+                            end
+                            -- Нажимаем S
                             VirtualInput:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+                            lastDirection = 180 -- Устанавливаем текущее направление
                             REC()
                             shouldMove = true
                             reachedBall = false
@@ -885,6 +897,7 @@ RunService.RenderStepped:Connect(function()
                             REC()
                             shouldMove = false
                             reachedBall = true
+                            task.wait(2)
                             restoreUserInput()
                         end
                     -- Для всех других направлений - стандартное поведение
@@ -899,6 +912,7 @@ RunService.RenderStepped:Connect(function()
                         else
                             if shouldMove then
                                 stopMovement()
+                                task.wait(2)
                                 restoreUserInput()
                             end
                         end
@@ -910,12 +924,14 @@ RunService.RenderStepped:Connect(function()
                     else
                         if shouldMove then
                             stopMovement()
+                            task.wait(2)
                             restoreUserInput()
                         end
                     end
                 else
                     if shouldMove then
                         stopMovement()
+                        task.wait(2)
                         restoreUserInput()
                     end
                 end
