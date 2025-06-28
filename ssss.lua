@@ -43,7 +43,7 @@ ScreenGui.Name = "AutoDiveUI"
 ScreenGui.Parent = PLAYER:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 180)
+MainFrame.Size = UDim2.new(0, 220, 0, 210) -- Увеличили высоту для вкладок
 MainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 2
@@ -52,16 +52,45 @@ MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
+-- Создаем контейнер для кнопок вкладок
+local TabButtonsFrame = Instance.new("Frame")
+TabButtonsFrame.Size = UDim2.new(1, 0, 0, 30)
+TabButtonsFrame.BackgroundTransparency = 1
+TabButtonsFrame.Parent = MainFrame
+
+-- Кнопка вкладки Main
+local MainTabButton = Instance.new("TextButton")
+MainTabButton.Name = "MainTab"
+MainTabButton.Size = UDim2.new(0.5, -5, 1, 0)
+MainTabButton.Position = UDim2.new(0, 0, 0, 0)
+MainTabButton.Text = "Main"
+MainTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+MainTabButton.BorderSizePixel = 0
+MainTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainTabButton.Parent = TabButtonsFrame
+
+-- Кнопка вкладки Binds
+local BindsTabButton = Instance.new("TextButton")
+BindsTabButton.Name = "BindsTab"
+BindsTabButton.Size = UDim2.new(0.5, -5, 1, 0)
+BindsTabButton.Position = UDim2.new(0.5, 5, 0, 0)
+BindsTabButton.Text = "Binds"
+BindsTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+BindsTabButton.BorderSizePixel = 0
+BindsTabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+BindsTabButton.Parent = TabButtonsFrame
+
+-- Основные элементы (находятся во вкладке Main)
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 200, 0, 40)
-ToggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+ToggleButton.Position = UDim2.new(0.05, 0, 0.2, 0) -- Сдвинуто вниз для вкладок
 ToggleButton.Text = "AutoDive: OFF"
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ToggleButton.Parent = MainFrame
 
 local PanicButton = Instance.new("TextButton")
 PanicButton.Size = UDim2.new(0, 200, 0, 40)
-PanicButton.Position = UDim2.new(0.05, 0, 0.25, 0)
+PanicButton.Position = UDim2.new(0.05, 0, 0.4, 0) -- Сдвинуто вниз для вкладок
 PanicButton.Text = "PANIC BUTTON"
 PanicButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -70,7 +99,7 @@ PanicButton.Parent = MainFrame
 -- Слайдер задержки
 local SliderContainer = Instance.new("Frame")
 SliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
-SliderContainer.Position = UDim2.new(0.05, 0, 0.5, 0)
+SliderContainer.Position = UDim2.new(0.05, 0, 0.6, 0) -- Сдвинуто вниз для вкладок
 SliderContainer.BackgroundTransparency = 1
 SliderContainer.Parent = MainFrame
 
@@ -117,6 +146,210 @@ TextBox.Text = "1"
 TextBox.PlaceholderText = "1-1000"
 TextBox.ClearTextOnFocus = false
 TextBox.Parent = SliderContainer
+
+-- Создаем фрейм для вкладки Binds (изначально скрыт)
+local BindsFrame = Instance.new("Frame")
+BindsFrame.Size = UDim2.new(0, 200, 0, 150)
+BindsFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
+BindsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+BindsFrame.BorderSizePixel = 0
+BindsFrame.Visible = false
+BindsFrame.Parent = MainFrame
+
+-- Создаем элементы для биндов
+local BindToggles = {}
+
+-- Функция для создания элементов биндов
+local function createBindElements()
+    -- Очищаем предыдущие элементы
+    for _, v in pairs(BindsFrame:GetChildren()) do
+        if v:IsA("Frame") then
+            v:Destroy()
+        end
+    end
+    
+    -- Бинд для переключения AutoDive
+    local toggleBindFrame = Instance.new("Frame")
+    toggleBindFrame.Size = UDim2.new(1, 0, 0, 40)
+    toggleBindFrame.Position = UDim2.new(0, 0, 0, 0)
+    toggleBindFrame.BackgroundTransparency = 1
+    toggleBindFrame.Parent = BindsFrame
+    
+    local toggleBindLabel = Instance.new("TextLabel")
+    toggleBindLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    toggleBindLabel.Position = UDim2.new(0, 0, 0, 0)
+    toggleBindLabel.Text = "Toggle AutoDive:"
+    toggleBindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBindLabel.BackgroundTransparency = 1
+    toggleBindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    toggleBindLabel.Parent = toggleBindFrame
+    
+    local toggleBindButton = Instance.new("TextButton")
+    toggleBindButton.Name = "BindButton"
+    toggleBindButton.Size = UDim2.new(0.35, 0, 0.8, 0)
+    toggleBindButton.Position = UDim2.new(0.65, 0, 0.1, 0)
+    toggleBindButton.Text = "V"
+    toggleBindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    toggleBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBindButton.Parent = toggleBindFrame
+    
+    -- Бинд для показа/скрытия UI
+    local uiBindFrame = Instance.new("Frame")
+    uiBindFrame.Size = UDim2.new(1, 0, 0, 40)
+    uiBindFrame.Position = UDim2.new(0, 0, 0, 50)
+    uiBindFrame.BackgroundTransparency = 1
+    uiBindFrame.Parent = BindsFrame
+    
+    local uiBindLabel = Instance.new("TextLabel")
+    uiBindLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    uiBindLabel.Position = UDim2.new(0, 0, 0, 0)
+    uiBindLabel.Text = "Toggle UI:"
+    uiBindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    uiBindLabel.BackgroundTransparency = 1
+    uiBindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    uiBindLabel.Parent = uiBindFrame
+    
+    local uiBindButton = Instance.new("TextButton")
+    uiBindButton.Name = "BindButton"
+    uiBindButton.Size = UDim2.new(0.35, 0, 0.8, 0)
+    uiBindButton.Position = UDim2.new(0.65, 0, 0.1, 0)
+    uiBindButton.Text = "F1"
+    uiBindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    uiBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    uiBindButton.Parent = uiBindFrame
+    
+    -- Сохраняем кнопки биндов для дальнейшего использования
+    BindToggles["AutoDive"] = toggleBindButton
+    BindToggles["ToggleUI"] = uiBindButton
+    
+    -- Текст инструкции
+    local instructionLabel = Instance.new("TextLabel")
+    instructionLabel.Size = UDim2.new(1, 0, 0, 40)
+    instructionLabel.Position = UDim2.new(0, 0, 0, 100)
+    instructionLabel.Text = "Click on bind button and press any key to rebind"
+    instructionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    instructionLabel.TextSize = 12
+    instructionLabel.TextWrapped = true
+    instructionLabel.BackgroundTransparency = 1
+    instructionLabel.Parent = BindsFrame
+end
+
+-- Создаем элементы биндов
+createBindElements()
+
+-- Таблица для хранения текущих биндов
+local CurrentBinds = {
+    AutoDive = Enum.KeyCode.V,
+    ToggleUI = Enum.KeyCode.F1
+}
+
+-- Функция для получения имени клавиши
+local function getKeyName(keyCode)
+    local name = tostring(keyCode)
+    return name:gsub("Enum.KeyCode.", "")
+end
+
+-- Функция для обновления текста кнопок биндов
+local function updateBindButtons()
+    for bindName, button in pairs(BindToggles) do
+        if CurrentBinds[bindName] then
+            button.Text = getKeyName(CurrentBinds[bindName])
+        end
+    end
+end
+
+-- Обновляем кнопки при старте
+updateBindButtons()
+
+-- Переменная для отслеживания изменения бинда
+local rebinding = nil
+
+-- Функция для обработки изменения биндов
+local function handleBindChange(input, gameProcessed)
+    if not rebinding or gameProcessed then return end
+    
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        -- Сохраняем новый бинд
+        CurrentBinds[rebinding] = input.KeyCode
+        
+        -- Обновляем текст кнопки
+        if BindToggles[rebinding] then
+            BindToggles[rebinding].Text = getKeyName(input.KeyCode)
+        end
+        
+        -- Сбрасываем состояние
+        rebinding = nil
+    end
+end
+
+-- Подключаем обработчик ввода
+UserInputService.InputBegan:Connect(handleBindChange)
+
+-- Функция для настройки обработчиков кнопок биндов
+local function setupBindButtons()
+    for bindName, button in pairs(BindToggles) do
+        button.MouseButton1Click:Connect(function()
+            rebinding = bindName
+            button.Text = "..."
+            button.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+            
+            -- Таймер для сброса, если ничего не выбрано
+            delay(3, function()
+                if rebinding == bindName then
+                    rebinding = nil
+                    button.Text = getKeyName(CurrentBinds[bindName])
+                    button.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+                end
+            end)
+        end)
+    end
+end
+
+-- Настраиваем кнопки биндов
+setupBindButtons()
+
+-- Функция переключения вкладок
+local function switchToTab(tabName)
+    if tabName == "Main" then
+        MainTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        BindsTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        MainTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        BindsTabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        
+        -- Показываем элементы Main
+        ToggleButton.Visible = true
+        PanicButton.Visible = true
+        SliderContainer.Visible = true
+        
+        -- Скрываем Binds
+        BindsFrame.Visible = false
+    elseif tabName == "Binds" then
+        BindsTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        MainTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        BindsTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        MainTabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        
+        -- Скрываем элементы Main
+        ToggleButton.Visible = false
+        PanicButton.Visible = false
+        SliderContainer.Visible = false
+        
+        -- Показываем Binds
+        BindsFrame.Visible = true
+    end
+end
+
+-- Обработчики кликов по вкладкам
+MainTabButton.MouseButton1Click:Connect(function()
+    switchToTab("Main")
+end)
+
+BindsTabButton.MouseButton1Click:Connect(function()
+    switchToTab("Binds")
+end)
+
+-- Инициализация - показываем Main по умолчанию
+switchToTab("Main")
 
 -- Настройки слайдера задержки
 local minValue = 1    -- мин 1ms
@@ -222,15 +455,15 @@ local isDiving = false
 local ZONES = {
     {
         position = Vector3.new(0, 0.5, 0),
-        size = Vector3.new(48, 0.2, 95)
+        size = Vector3.new(54, 0.2, 101)
     },
     {
         position = Vector3.new(-100, 0.5, 0),
-        size = Vector3.new(48, 0.2, 95)
+        size = Vector3.new(54, 0.2, 101)
     },
     {
         position = Vector3.new(100, 0.5, 0),
-        size = Vector3.new(48, 0.2, 95)
+        size = Vector3.new(54, 0.2, 101)
     }
 }
 
@@ -521,11 +754,12 @@ PanicButton.MouseButton1Click:Connect(function()
     if raysFolder then raysFolder:Destroy() end
 end)
 
--- Обработчик горячих клавиш
+-- Обработчик горячих клавиш (с использованием биндов)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not scriptActive then return end
+    if not scriptActive or gameProcessed then return end
     
-    if input.KeyCode == Enum.KeyCode.V and not gameProcessed then
+    -- Проверяем бинд для переключения AutoDive
+    if input.KeyCode == CurrentBinds.AutoDive then
         autoDiveEnabled = not autoDiveEnabled
         if autoDiveEnabled then
             ToggleButton.Text = "AutoDive: ON"
@@ -538,7 +772,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
     
-    if input.KeyCode == Enum.KeyCode.F1 and not gameProcessed then
+    -- Проверяем бинд для показа/скрытия UI
+    if input.KeyCode == CurrentBinds.ToggleUI then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
