@@ -583,7 +583,7 @@ RunService.RenderStepped:Connect(function()
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
                     -- Если мяч приземляется прямо за игроком (180 градусов)
-                    if angle == 180 then
+                    if angle == 180 and distance <= 10 then
                         -- Просто нажимаем S и бежим за мячом
                         if not inputBlocked then
                             blockUserInput()
