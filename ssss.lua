@@ -43,7 +43,7 @@ ScreenGui.Name = "AutoDiveUI"
 ScreenGui.Parent = PLAYER:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 210) -- Увеличили высоту для вкладок
+MainFrame.Size = UDim2.new(0, 220, 0, 240) -- Увеличили высоту для новых элементов
 MainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 2
@@ -88,9 +88,18 @@ ToggleButton.Text = "AutoDive: OFF"
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ToggleButton.Parent = MainFrame
 
+local ModeLabel = Instance.new("TextLabel")
+ModeLabel.Size = UDim2.new(0, 200, 0, 20)
+ModeLabel.Position = UDim2.new(0.05, 0, 0.4, 0)
+ModeLabel.Text = "Mode: Longs"
+ModeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ModeLabel.BackgroundTransparency = 1
+ModeLabel.TextXAlignment = Enum.TextXAlignment.Left
+ModeLabel.Parent = MainFrame
+
 local PanicButton = Instance.new("TextButton")
 PanicButton.Size = UDim2.new(0, 200, 0, 40)
-PanicButton.Position = UDim2.new(0.05, 0, 0.4, 0) -- Сдвинуто вниз для вкладок
+PanicButton.Position = UDim2.new(0.05, 0, 0.5, 0) -- Сдвинуто вниз для новых элементов
 PanicButton.Text = "PANIC BUTTON"
 PanicButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -99,7 +108,7 @@ PanicButton.Parent = MainFrame
 -- Слайдер задержки
 local SliderContainer = Instance.new("Frame")
 SliderContainer.Size = UDim2.new(0.9, 0, 0, 60)
-SliderContainer.Position = UDim2.new(0.05, 0, 0.6, 0) -- Сдвинуто вниз для вкладок
+SliderContainer.Position = UDim2.new(0.05, 0, 0.7, 0) -- Сдвинуто вниз для новых элементов
 SliderContainer.BackgroundTransparency = 1
 SliderContainer.Parent = MainFrame
 
@@ -149,7 +158,7 @@ TextBox.Parent = SliderContainer
 
 -- Создаем фрейм для вкладки Binds (изначально скрыт)
 local BindsFrame = Instance.new("Frame")
-BindsFrame.Size = UDim2.new(0, 200, 0, 150)
+BindsFrame.Size = UDim2.new(0, 200, 0, 190) -- Увеличили высоту для нового бинда
 BindsFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
 BindsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 BindsFrame.BorderSizePixel = 0
@@ -218,20 +227,46 @@ local function createBindElements()
     uiBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     uiBindButton.Parent = uiBindFrame
     
-    -- Сохраняем кнопки биндов для дальнейшего использования
-    BindToggles["AutoDive"] = toggleBindButton
-    BindToggles["ToggleUI"] = uiBindButton
+    -- Бинд для переключения режимов
+    local modeBindFrame = Instance.new("Frame")
+    modeBindFrame.Size = UDim2.new(1, 0, 0, 40)
+    modeBindFrame.Position = UDim2.new(0, 0, 0, 100)
+    modeBindFrame.BackgroundTransparency = 1
+    modeBindFrame.Parent = BindsFrame
+    
+    local modeBindLabel = Instance.new("TextLabel")
+    modeBindLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    modeBindLabel.Position = UDim2.new(0, 0, 0, 0)
+    modeBindLabel.Text = "Switch Mode:"
+    modeBindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    modeBindLabel.BackgroundTransparency = 1
+    modeBindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    modeBindLabel.Parent = modeBindFrame
+    
+    local modeBindButton = Instance.new("TextButton")
+    modeBindButton.Name = "BindButton"
+    modeBindButton.Size = UDim2.new(0.35, 0, 0.8, 0)
+    modeBindButton.Position = UDim2.new(0.65, 0, 0.1, 0)
+    modeBindButton.Text = "P"
+    modeBindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    modeBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    modeBindButton.Parent = modeBindFrame
     
     -- Текст инструкции
     local instructionLabel = Instance.new("TextLabel")
     instructionLabel.Size = UDim2.new(1, 0, 0, 40)
-    instructionLabel.Position = UDim2.new(0, 0, 0, 100)
+    instructionLabel.Position = UDim2.new(0, 0, 0, 150)
     instructionLabel.Text = "Click on bind button and press any key to rebind"
     instructionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
     instructionLabel.TextSize = 12
     instructionLabel.TextWrapped = true
     instructionLabel.BackgroundTransparency = 1
     instructionLabel.Parent = BindsFrame
+    
+    -- Сохраняем кнопки биндов для дальнейшего использования
+    BindToggles["AutoDive"] = toggleBindButton
+    BindToggles["ToggleUI"] = uiBindButton
+    BindToggles["SwitchMode"] = modeBindButton
 end
 
 -- Создаем элементы биндов
@@ -240,7 +275,8 @@ createBindElements()
 -- Таблица для хранения текущих биндов
 local CurrentBinds = {
     AutoDive = Enum.KeyCode.V,
-    ToggleUI = Enum.KeyCode.F1
+    ToggleUI = Enum.KeyCode.F1,
+    SwitchMode = Enum.KeyCode.P
 }
 
 -- Функция для получения имени клавиши
@@ -318,6 +354,7 @@ local function switchToTab(tabName)
         
         -- Показываем элементы Main
         ToggleButton.Visible = true
+        ModeLabel.Visible = true
         PanicButton.Visible = true
         SliderContainer.Visible = true
         
@@ -331,6 +368,7 @@ local function switchToTab(tabName)
         
         -- Скрываем элементы Main
         ToggleButton.Visible = false
+        ModeLabel.Visible = false
         PanicButton.Visible = false
         SliderContainer.Visible = false
         
@@ -450,6 +488,13 @@ local inputBlocked = false
 local originalInputEnabled = true
 local reachedBall = false
 local isDiving = false
+local currentMode = "Longs" -- По умолчанию режим Longs
+
+-- Функция для переключения режимов (без изменения параметров)
+local function switchMode()
+    currentMode = (currentMode == "Longs") and "Shorts" or "Longs"
+    ModeLabel.Text = "Mode: " .. currentMode
+end
 
 -- Определяем все зоны
 local ZONES = {
@@ -831,6 +876,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == CurrentBinds.ToggleUI then
         MainFrame.Visible = not MainFrame.Visible
     end
+    
+    -- Проверяем бинд для переключения режимов
+    if input.KeyCode == CurrentBinds.SwitchMode then
+        switchMode()
+    end
 end)
 
 -- Модифицируем основной цикл
@@ -872,39 +922,58 @@ RunService.RenderStepped:Connect(function()
                     local playerCourt = getPlayerCourtSide(playerPosition, currentZone)
                     local ballCourt = getPlayerCourtSide(landingPosition, currentZone)
                     
-                    -- Если мяч приземляется прямо за игроком (180 градусов)
-                    if angle == 180 and distance <= DIVE_RADIUS then
-                        -- Если мяч за спиной и близко - бежим назад (S)
-                        if not inputBlocked then
-                            blockUserInput()
-                            -- Отпускаем все предыдущие клавиши
-                            if lastDirection then
-                                for _, key in ipairs(directionKeys[lastDirection]) do
-                                    VirtualInput:SendKeyEvent(false, key, false, game)
-                                end
-                            end
-                            -- Нажимаем S
-                            VirtualInput:SendKeyEvent(true, Enum.KeyCode.S, false, game)
-                            lastDirection = 180 -- Устанавливаем текущее направление
-                            REC()
-                            shouldMove = true
-                            reachedBall = false
+                    -- Режим Longs: уменьшаем радиус дайва для направлений W, WA, WD
+                    if currentMode == "Longs" then
+                        local effectiveDiveRadius = DIVE_RADIUS
+                        if angle == 0 or angle == 45 or angle == 315 then
+                            effectiveDiveRadius = 13 -- Уменьшенный радиус для направлений вперед
                         end
                         
-                        -- Если мяч в зоне приема - выполняем прием
-                        if distance <= REC_RADIUS then
-                            VirtualInput:SendKeyEvent(false, Enum.KeyCode.S, false, game)
-                            REC()
-                            shouldMove = false
-                            reachedBall = true
-                            task.wait(2)
-                            restoreUserInput()
-                        end
-                    -- Для всех других направлений - стандартное поведение
-                    elseif ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
-                        if distance <= DIVE_RADIUS and distance > REC_RADIUS and not isDiving then
-                            performDiveWithMovement(angle)
-                        elseif distance <= REC_RADIUS and not isDiving then
+                        -- Если мяч приземляется прямо за игроком (180 градусов)
+                        if angle == 180 and distance <= effectiveDiveRadius then
+                            -- Если мяч за спиной и близко - бежим назад (S)
+                            if not inputBlocked then
+                                blockUserInput()
+                                -- Отпускаем все предыдущие клавиши
+                                if lastDirection then
+                                    for _, key in ipairs(directionKeys[lastDirection]) do
+                                        VirtualInput:SendKeyEvent(false, key, false, game)
+                                    end
+                                end
+                                -- Нажимаем S
+                                VirtualInput:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+                                lastDirection = 180 -- Устанавливаем текущее направление
+                                REC()
+                                shouldMove = true
+                                reachedBall = false
+                            end
+                            
+                            -- Если мяч в зоне приема - выполняем прием
+                            if distance <= REC_RADIUS then
+                                VirtualInput:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+                                REC()
+                                shouldMove = false
+                                reachedBall = true
+                                task.wait(4)
+                                restoreUserInput()
+                            end
+                        -- Для всех других направлений - стандартное поведение
+                        elseif ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
+                            if distance <= effectiveDiveRadius and distance > REC_RADIUS and not isDiving then
+                                performDiveWithMovement(angle)
+                            elseif distance <= REC_RADIUS and not isDiving then
+                                if not reachedBall then
+                                    moveToMarker(landingPosition, ballSpeed)
+                                    REC()
+                                end
+                            else
+                                if shouldMove then
+                                    stopMovement()
+                                    task.wait(4)
+                                    restoreUserInput()
+                                end
+                            end
+                        elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt and distance <= effectiveDiveRadius then
                             if not reachedBall then
                                 moveToMarker(landingPosition, ballSpeed)
                                 REC()
@@ -916,16 +985,53 @@ RunService.RenderStepped:Connect(function()
                                 restoreUserInput()
                             end
                         end
-                    elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt and distance <= DIVE_RADIUS then
-                        if not reachedBall then
-                            moveToMarker(landingPosition, ballSpeed)
-                            REC()
-                        end
-                    else
-                        if shouldMove then
-                            stopMovement()
-                            task.wait(2)
-                            restoreUserInput()
+                    
+                    -- Режим Shorts: для направления 180 градусов выполняем дайв вместо бега
+                    elseif currentMode == "Shorts" then
+                        -- Если мяч приземляется прямо за игроком (180 градусов)
+                        if angle == 180 and distance <= DIVE_RADIUS then
+                            -- В режиме Shorts выполняем дайв вместо бега
+                            if ballSpeed > DIVE_SPEED and playerCourt == ballCourt and not isDiving then
+                                performDiveWithMovement(angle)
+                            elseif distance <= REC_RADIUS and not isDiving then
+                                if not reachedBall then
+                                    moveToMarker(landingPosition, ballSpeed)
+                                    REC()
+                                end
+                            else
+                                if shouldMove then
+                                    stopMovement()
+                                    task.wait(2)
+                                    restoreUserInput()
+                                end
+                            end
+                        -- Для всех других направлений - стандартное поведение
+                        elseif ballSpeed > DIVE_SPEED and playerCourt == ballCourt then
+                            if distance <= DIVE_RADIUS and distance > REC_RADIUS and not isDiving then
+                                performDiveWithMovement(angle)
+                            elseif distance <= REC_RADIUS and not isDiving then
+                                if not reachedBall then
+                                    moveToMarker(landingPosition, ballSpeed)
+                                    REC()
+                                end
+                            else
+                                if shouldMove then
+                                    stopMovement()
+                                    task.wait(2)
+                                    restoreUserInput()
+                                end
+                            end
+                        elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt and distance <= DIVE_RADIUS then
+                            if not reachedBall then
+                                moveToMarker(landingPosition, ballSpeed)
+                                REC()
+                            end
+                        else
+                            if shouldMove then
+                                stopMovement()
+                                task.wait(2)
+                                restoreUserInput()
+                            end
                         end
                     end
                 else
