@@ -616,7 +616,7 @@ RunService.RenderStepped:Connect(function()
                                 restoreUserInput()
                             end
                         end
-                    elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt then
+                    elseif ballSpeed >= MIN_RUN_SPEED and ballSpeed <= MAX_RUN_SPEED and playerCourt == ballCourt and distance <= DIVE_RADIUS then
                         if not reachedBall then
                             moveToMarker(landingPosition, ballSpeed)
                             REC()
