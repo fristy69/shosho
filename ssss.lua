@@ -926,7 +926,7 @@ RunService.RenderStepped:Connect(function()
                     if currentMode == "Longs" then
                         local effectiveDiveRadius = DIVE_RADIUS
                         if angle == 0 or angle == 45 or angle == 315 then
-                            effectiveDiveRadius = 13 -- Уменьшенный радиус для направлений вперед
+                            effectiveDiveRadius = 11 -- Уменьшенный радиус для направлений вперед
                         end
                         
                         -- Если мяч приземляется прямо за игроком (180 градусов)
